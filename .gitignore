@@ -7,9 +7,11 @@ __pycache__/
 .claude/
 build/
 dist/
-*.spec
 *.exe
 venv/
 .venv/
 clear_icon_cache.bat
 tts_samples/
+config.yaml
+rosters/*.yaml
+!rosters/example.yaml

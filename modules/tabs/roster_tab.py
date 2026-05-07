@@ -6,6 +6,10 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
     QPushButton, QLineEdit, QLabel
 )
+from modules.styles import (
+    BUTTON_DANGER, BUTTON_NEUTRAL, BUTTON_PRIMARY_GREEN,
+    LABEL_HINT, LINE_EDIT_DARK,
+)
 
 
 class RosterTab(QWidget):
@@ -19,7 +23,7 @@ class RosterTab(QWidget):
         layout.setSpacing(8)
 
         header = QLabel("Drag rows or use ↑ ↓ to reorder. Changes take effect on Apply.")
-        header.setStyleSheet("color: #888; font-size: 14px;")
+        header.setStyleSheet(LABEL_HINT)
         layout.addWidget(header)
 
         self._list = QListWidget()
@@ -42,8 +46,8 @@ class RosterTab(QWidget):
         down_btn = QPushButton("↓  Move Down")
         del_btn = QPushButton("✕  Remove")
         for btn in (up_btn, down_btn):
-            btn.setStyleSheet("background: #1a1a1a; color: #ccc; border: 1px solid #333; padding: 4px 10px; font-family: Consolas; font-size: 14px;")
-        del_btn.setStyleSheet("background: #2a1a1a; color: #ff4444; border: 1px solid #3a2a2a; padding: 4px 10px; font-family: Consolas; font-size: 14px;")
+            btn.setStyleSheet(BUTTON_NEUTRAL)
+        del_btn.setStyleSheet(BUTTON_DANGER)
         up_btn.clicked.connect(lambda: self._move_selected(-1))
         down_btn.clicked.connect(lambda: self._move_selected(1))
         del_btn.clicked.connect(self._remove_selected)
@@ -57,10 +61,10 @@ class RosterTab(QWidget):
         add_row = QHBoxLayout()
         self._add_input = QLineEdit()
         self._add_input.setPlaceholderText("+ Add player name...")
-        self._add_input.setStyleSheet("background: #111; color: #ccc; border: 1px dashed #333; padding: 6px; font-family: Consolas; font-size: 14px;")
+        self._add_input.setStyleSheet(LINE_EDIT_DARK)
         self._add_input.returnPressed.connect(self._add_player)
         add_btn = QPushButton("Add")
-        add_btn.setStyleSheet("background: #1a3a1a; color: #44ff88; border: none; padding: 6px 16px; font-family: Consolas; font-size: 14px;")
+        add_btn.setStyleSheet(BUTTON_PRIMARY_GREEN)
         add_btn.clicked.connect(self._add_player)
         add_row.addWidget(self._add_input)
         add_row.addWidget(add_btn)

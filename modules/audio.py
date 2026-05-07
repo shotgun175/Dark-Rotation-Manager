@@ -10,17 +10,15 @@ Pre-rendering runs in a background thread so the GUI stays responsive.
 """
 
 import os
-import sys
 import shutil
 import tempfile
 import asyncio
 import threading
 
-if getattr(sys, "frozen", False):
-    _exe_dir = os.path.dirname(sys.executable)
-    _BASE_DIR = os.path.dirname(_exe_dir) if os.path.basename(_exe_dir).lower() == "dist" else _exe_dir
-else:
-    _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from modules.paths import get_base_dir
+from modules.events import EngineEvent
+
+_BASE_DIR = get_base_dir()
 
 CHIME_PATH = os.path.join(_BASE_DIR, "assets", "sounds", "dark_confirmed.mp3")
 
@@ -32,11 +30,11 @@ VOICE_MAP = {
 # Maps engine event names to the cue key used in config
 # "missed" intentionally omitted — no TTS for missed throws
 EVENT_TO_CUE = {
-    "announce":          "announce",
-    "warning":           "warning",
-    "confirmed":         "confirmed",
-    "rotation_complete": "rotation_complete",
-    "reset":             "reset",
+    EngineEvent.ANNOUNCE:          "announce",
+    EngineEvent.WARNING:           "warning",
+    EngineEvent.CONFIRMED:         "confirmed",
+    EngineEvent.ROTATION_COMPLETE: "rotation_complete",
+    EngineEvent.RESET:             "reset",
 }
 
 # ------------------------------------------------------------------
@@ -74,12 +72,12 @@ class AudioManager:
     # Public API
     # ------------------------------------------------------------------
 
-    def prerender(self, players: list[str], on_done=None):
+    def prerender(self, players: list[str]):
         """Kick off background pre-rendering of all TTS phrases."""
         self._ready = False
         self._render_thread = threading.Thread(
             target=self._render_all,
-            args=(list(players), on_done),
+            args=(list(players),),
             daemon=True,
         )
         self._render_thread.start()
@@ -175,7 +173,7 @@ class AudioManager:
     # Internal
     # ------------------------------------------------------------------
 
-    def _render_all(self, players: list[str], on_done=None):
+    def _render_all(self, players: list[str]):
         """Background thread: render every TTS phrase to mp3 in parallel."""
         cfg      = self._config.get("audio", {})
         voice    = cfg.get("voice", "Andrew")
@@ -217,9 +215,6 @@ class AudioManager:
 
         self._ready = True
         print(f"[Audio] Pre-render complete — {len(self._cache)} clips ready.")
-
-        if on_done:
-            on_done()
 
     @staticmethod
     async def _async_render(text: str, voice_id: str, out_path: str):

@@ -3,6 +3,7 @@ rotation_tab.py - Rotation timing settings (max throws, cooldown, warning)
 """
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox
+from modules.styles import INPUT_DARK, LABEL_HINT
 
 
 class RotationTab(QWidget):
@@ -13,9 +14,10 @@ class RotationTab(QWidget):
             max_throws=rot.get("max_throws_per_run", 3),
             cooldown=rot.get("dark_cooldown_seconds", 30),
             warning=rot.get("warning_seconds", 5),
+            miss_seconds=rot.get("miss_seconds", 20),
         )
 
-    def _build_ui(self, max_throws: int, cooldown: int, warning: int):
+    def _build_ui(self, max_throws: int, cooldown: int, warning: int, miss_seconds: int):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(18, 18, 18, 18)
         layout.setSpacing(16)
@@ -30,6 +32,10 @@ class RotationTab(QWidget):
         self._cooldown = self._field(
             layout, "DARK COOLDOWN (seconds)", cooldown, 1, 300,
             "Players who threw within this window are skipped when it's their turn.",
+        )
+        self._miss_seconds = self._field(
+            layout, "PLAYER WINDOW (seconds before auto-miss)", miss_seconds, 5, 60,
+            "How long a player has to throw their dark before the bot auto-counts a miss.",
         )
         self._warning = self._field(
             layout, "WARNING (seconds before next window)", warning, 1, 60,
@@ -47,14 +53,11 @@ class RotationTab(QWidget):
         spin = QSpinBox()
         spin.setRange(min_v, max_v)
         spin.setValue(value)
-        spin.setStyleSheet(
-            "background: #1a1a1a; color: #fff; border: 1px solid #333; "
-            "padding: 4px 8px; min-width: 60px; font-family: Consolas; font-size: 14px;"
-        )
+        spin.setStyleSheet(INPUT_DARK)
         row.addWidget(spin)
 
         hint_lbl = QLabel(hint)
-        hint_lbl.setStyleSheet("color: #888; font-size: 14px;")
+        hint_lbl.setStyleSheet(LABEL_HINT)
         hint_lbl.setWordWrap(True)
         row.addWidget(hint_lbl, stretch=1)
         parent.addLayout(row)
@@ -65,4 +68,5 @@ class RotationTab(QWidget):
             "max_throws_per_run": self._max_throws.value(),
             "dark_cooldown_seconds": self._cooldown.value(),
             "warning_seconds": self._warning.value(),
+            "miss_seconds": self._miss_seconds.value(),
         }

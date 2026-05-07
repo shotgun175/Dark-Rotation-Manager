@@ -155,9 +155,22 @@ class OverlayWindow(QWidget):
         if state == "PAUSED":
             self._lbl_state.setText("⏸ PAUSED")
             self._lbl_state.setStyleSheet("color: #ffaa00; background-color: transparent;")
+        elif state in ("RUNNING_PLAYER_WINDOW", "RUNNING_DARK_WINDOW"):
+            self._lbl_state.setText("▶ DARK ROTATION RUNNING")
+            self._lbl_state.setStyleSheet("color: #44ff88; background-color: transparent;")
+        elif state == "IDLE":
+            self._lbl_state.setText("● ARMED")
+            self._lbl_state.setStyleSheet("color: #ffaa00; background-color: transparent;")
         else:
             self._lbl_state.setText(state)
             self._lbl_state.setStyleSheet(f"color: {TEXT_SECONDARY}; background-color: transparent;")
+
+        phase = status.get("phase")
+        if phase == "dark_window":
+            self._lbl_current_label.setText("DARK NOW")
+        elif phase == "player_window":
+            self._lbl_current_label.setText("UP NEXT")
+        # else: leave the current text untouched (idle/paused preserves whichever phase was last shown)
 
         current = status.get("current_player", "—")
         current_count = status.get("current_count", "")

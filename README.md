@@ -147,6 +147,15 @@ MIT
 
 ## Changelog
 
+### v1.1.0 - Cleanup audit, live volume, phase-aware overlay, tunable miss_seconds
+- **New: live volume slider** — drag the Audio tab volume slider while the bot is running for instant changes (no Apply needed)
+- **New: overlay current-slot label** now reads "DARK NOW" during the buff window and "UP NEXT" during the player window, instead of always saying "DARK NOW"
+- **New: tunable `miss_seconds`** in the Rotation tab — controls how long a player has to throw before auto-miss fires (was hard-coded to 20s)
+- **Polish:** overlay state header now reads "▶ DARK ROTATION RUNNING" / "● ARMED" / "⏸ PAUSED" with matching colors, instead of the raw internal state name. Confirm/missed status messages use ✓/✗ instead of OK/X prefixes.
+- **Cleanup:** removed dead engine, roster, and audio API; centralized BASE_DIR and Lost Ark window-finder helpers; collapsed the engine state machine into explicit phase substates; split the GUI shell from runtime lifecycle (`BotController`) and event routing (`EventRouter`)
+- **Repo:** `config.yaml` and `rosters/<your_roster>.yaml` are now gitignored — first run copies from `config.example.yaml` and `rosters/example.yaml`
+- **Repo:** `Dark Rotation Manager.spec` is now tracked (was previously gitignored despite being needed for builds)
+
 ### v1.0.14 - Pause, reset, and path fixes
 - **F8 pause / resume:** pressing F8 while running now pauses the rotation (overlay shows ⏸ PAUSED, bar freezes). Press F8 again to resume — the bot scans for an active dark grenade and either restarts the buff countdown or advances to the next player
 - **F11 reset:** clears all throw counts and returns to player 1 in the armed-but-not-started state without closing the overlay. TTS announces "Dark rotation reset" as confirmation

@@ -8,6 +8,10 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QPen
+from modules.styles import (
+    BUTTON_GHOST, CARD_DARK, CHECKBOX_GOLD,
+    INPUT_DARK, LABEL_DIM, LABEL_HINT, LABEL_SECTION, SLIDER_GOLD,
+)
 
 
 class RegionPreviewWidget(QFrame):
@@ -118,10 +122,7 @@ class OverlayTab(QWidget):
 
         self._preview_btn = QPushButton("⊹ Preview on screen")
         self._preview_btn.setFixedWidth(210)
-        self._preview_btn.setStyleSheet(
-            "color: #88ccff; background: transparent; border: 1px solid #444; "
-            "padding: 5px 10px; font-size: 14px; font-family: Consolas;"
-        )
+        self._preview_btn.setStyleSheet(BUTTON_GHOST)
         self._preview_btn.clicked.connect(self.preview_requested.emit)
         pos_col.addWidget(self._preview_btn)
 
@@ -163,12 +164,7 @@ class OverlayTab(QWidget):
         self._opacity.setRange(10, 100)
         self._opacity.setValue(opacity_pct)
         self._opacity.setFixedWidth(300)
-        self._opacity.setStyleSheet(
-            "QSlider::groove:horizontal { background: #333; height: 6px; border-radius: 3px; }"
-            "QSlider::sub-page:horizontal { background: #ffd700; border-radius: 3px; }"
-            "QSlider::handle:horizontal { background: #fff; border: 2px solid #ffd700; "
-            "width: 14px; height: 14px; margin: -4px 0; border-radius: 7px; }"
-        )
+        self._opacity.setStyleSheet(SLIDER_GOLD)
         self._opacity.valueChanged.connect(
             lambda v: self._opacity_label.setText(f"OPACITY  {v}%")
         )
@@ -183,7 +179,7 @@ class OverlayTab(QWidget):
         self._font_size = self._spinbox(font_size, 8, 32)
         font_row.addWidget(self._font_size)
         px_lbl = QLabel("px")
-        px_lbl.setStyleSheet("color: #888; font-size: 14px;")
+        px_lbl.setStyleSheet(LABEL_HINT)
         font_row.addWidget(px_lbl)
         font_row.addStretch()
         left.addLayout(font_row)
@@ -191,20 +187,13 @@ class OverlayTab(QWidget):
         # ── AUTO-DETECTION ────────────────────────────────────────────────
         left.addWidget(self._section_label("AUTO-DETECTION"))
         det_card = QFrame()
-        det_card.setStyleSheet(
-            "QFrame { background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 4px; }"
-        )
+        det_card.setStyleSheet(CARD_DARK)
         det_card_layout = QVBoxLayout(det_card)
         det_card_layout.setContentsMargins(12, 10, 12, 10)
         det_card_layout.setSpacing(4)
         self._detection_enabled = QCheckBox("Enable grenade auto-detect (requires OpenCV + Lost Ark running)")
         self._detection_enabled.setChecked(detection_enabled)
-        self._detection_enabled.setStyleSheet(
-            "QCheckBox { color: #ccc; font-size: 14px; font-family: Consolas; border: none; background: transparent; }"
-            "QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #555; border-radius: 3px; background: #111; }"
-            "QCheckBox::indicator:checked { background: #ffd700; border-color: #ffd700; }"
-            "QCheckBox::indicator:hover { border-color: #ffd700; }"
-        )
+        self._detection_enabled.setStyleSheet(CHECKBOX_GOLD)
         det_card_layout.addWidget(self._detection_enabled)
         det_hint = QLabel("Scans boss debuff bar to confirm Dark / Splendid Dark automatically.")
         det_hint.setStyleSheet("color: #888; font-size: 13px; font-family: Consolas; border: none; background: transparent;")
@@ -241,10 +230,7 @@ class OverlayTab(QWidget):
         det_col.addLayout(det_row2)
 
         self._set_region_btn = QPushButton("⊹ Draw Region on Screen")
-        self._set_region_btn.setStyleSheet(
-            "color: #88ccff; background: transparent; border: 1px solid #444; "
-            "padding: 5px 10px; font-size: 14px; font-family: Consolas;"
-        )
+        self._set_region_btn.setStyleSheet(BUTTON_GHOST)
         self._set_region_btn.setSizePolicy(
             self._set_region_btn.sizePolicy().horizontalPolicy(),
             self._set_region_btn.sizePolicy().verticalPolicy(),
@@ -254,7 +240,7 @@ class OverlayTab(QWidget):
         det_col.addWidget(self._set_region_btn)
 
         region_hint = QLabel("Relative to Lost Ark window. Apply to save.")
-        region_hint.setStyleSheet("color: #888; font-size: 14px;")
+        region_hint.setStyleSheet(LABEL_HINT)
         det_col.addWidget(region_hint)
 
         det_and_preview.addLayout(det_col)
@@ -292,20 +278,17 @@ class OverlayTab(QWidget):
         s = QSpinBox()
         s.setRange(min_v, max_v)
         s.setValue(value)
-        s.setStyleSheet(
-            "background: #1a1a1a; color: #fff; border: 1px solid #333; "
-            "padding: 4px 8px; min-width: 60px; font-family: Consolas; font-size: 14px;"
-        )
+        s.setStyleSheet(INPUT_DARK)
         return s
 
     def _section_label(self, text: str) -> QLabel:
         lbl = QLabel(text)
-        lbl.setStyleSheet("color: #ccc; font-size: 14px; font-family: Consolas;")
+        lbl.setStyleSheet(LABEL_SECTION)
         return lbl
 
     def _dim_label(self, text: str) -> QLabel:
         lbl = QLabel(text)
-        lbl.setStyleSheet("color: #888; font-size: 14px; font-family: Consolas;")
+        lbl.setStyleSheet(LABEL_DIM)
         return lbl
 
     # ── Data access ───────────────────────────────────────────────────────

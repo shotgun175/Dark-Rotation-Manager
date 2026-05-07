@@ -7,10 +7,12 @@ from PyQt5.QtWidgets import (
     QPushButton, QFrame, QCheckBox, QRadioButton, QButtonGroup
 )
 from PyQt5.QtCore import Qt, pyqtSignal
+from modules.styles import CARD_DARK, CHECKBOX_CUE_GOLD, CHECKBOX_GOLD, RADIO_GOLD, SLIDER_GOLD
 
 
 class AudioTab(QWidget):
-    test_requested = pyqtSignal()
+    test_requested  = pyqtSignal()
+    volume_changed  = pyqtSignal(float)
 
     def __init__(self, config: dict):
         super().__init__()
@@ -36,19 +38,12 @@ class AudioTab(QWidget):
 
         # ── Master toggle card ────────────────────────────────────────
         master_card = QFrame()
-        master_card.setStyleSheet(
-            "QFrame { background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 4px; }"
-        )
+        master_card.setStyleSheet(CARD_DARK)
         mc_layout = QVBoxLayout(master_card)
         mc_layout.setContentsMargins(12, 10, 12, 10)
         self._enabled = QCheckBox("Enable audio cues")
         self._enabled.setChecked(enabled)
-        self._enabled.setStyleSheet(
-            "QCheckBox { color: #ccc; font-size: 14px; font-family: Consolas; border: none; background: transparent; }"
-            "QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #555; border-radius: 3px; background: #111; }"
-            "QCheckBox::indicator:checked { background: #ffd700; border-color: #ffd700; }"
-            "QCheckBox::indicator:hover { border-color: #ffd700; }"
-        )
+        self._enabled.setStyleSheet(CHECKBOX_GOLD)
         mc_layout.addWidget(self._enabled)
         layout.addWidget(master_card)
 
@@ -67,15 +62,7 @@ class AudioTab(QWidget):
         for label, key in [("Andrew (Male)", "Andrew"), ("Jenny (Female)", "Jenny")]:
             rb = QRadioButton(label)
             rb.setChecked(voice == key)
-            rb.setStyleSheet(
-                "QRadioButton { color: #ccc; font-size: 14px; font-family: Consolas; }"
-                "QRadioButton:disabled { color: #444; }"
-                "QRadioButton::indicator { width: 14px; height: 14px; }"
-                "QRadioButton::indicator:checked { background: #ffd700; border: 2px solid #ffd700; border-radius: 7px; }"
-                "QRadioButton::indicator:unchecked { background: #111; border: 1px solid #555; border-radius: 7px; }"
-                "QRadioButton::indicator:checked:disabled { background: #2a2a2a; border: 2px solid #3a3a3a; border-radius: 7px; }"
-                "QRadioButton::indicator:unchecked:disabled { background: #111; border: 1px solid #333; border-radius: 7px; }"
-            )
+            rb.setStyleSheet(RADIO_GOLD)
             rb.setProperty("voice_key", key)
             self._voice_group.addButton(rb)
             voice_row.addWidget(rb)
@@ -107,15 +94,7 @@ class AudioTab(QWidget):
             row.setSpacing(8)
             cb = QCheckBox(label)
             cb.setChecked(checked)
-            cb.setStyleSheet(
-                "QCheckBox { color: #ccc; font-size: 14px; font-family: Consolas; border: none; background: transparent; }"
-                "QCheckBox:disabled { color: #444; }"
-                "QCheckBox::indicator { width: 13px; height: 13px; border: 1px solid #555; border-radius: 3px; background: #111; }"
-                "QCheckBox::indicator:checked { background: #ffd700; border-color: #ffd700; }"
-                "QCheckBox::indicator:hover { border-color: #ffd700; }"
-                "QCheckBox::indicator:disabled { background: #111; border-color: #333; }"
-                "QCheckBox::indicator:checked:disabled { background: #2a2a2a; border-color: #3a3a3a; }"
-            )
+            cb.setStyleSheet(CHECKBOX_CUE_GOLD)
             hint_lbl = QLabel(hint)
             hint_lbl.setStyleSheet(
                 "QLabel { color: #555; font-size: 13px; font-family: Consolas; background: transparent; border: none; }"
@@ -142,17 +121,12 @@ class AudioTab(QWidget):
         self._volume.setValue(volume)
         self._volume.setFixedWidth(300)
         self._volume.setStyleSheet(
-            "QSlider::groove:horizontal { background: #333; height: 6px; border-radius: 3px; }"
-            "QSlider::sub-page:horizontal { background: #ffd700; border-radius: 3px; }"
-            "QSlider::handle:horizontal { background: #fff; border: 2px solid #ffd700; "
-            "width: 14px; height: 14px; margin: -4px 0; border-radius: 7px; }"
-            "QSlider::groove:horizontal:disabled { background: #222; }"
-            "QSlider::sub-page:horizontal:disabled { background: #2a2a2a; }"
-            "QSlider::handle:horizontal:disabled { background: #333; border-color: #3a3a3a; }"
+            SLIDER_GOLD
+            + "QSlider::groove:horizontal:disabled { background: #222; }"
+            + "QSlider::sub-page:horizontal:disabled { background: #2a2a2a; }"
+            + "QSlider::handle:horizontal:disabled { background: #333; border-color: #3a3a3a; }"
         )
-        self._volume.valueChanged.connect(
-            lambda v: self._volume_label.setText(f"VOLUME  {v}%")
-        )
+        self._volume.valueChanged.connect(self._on_volume_changed)
         vol_row = QHBoxLayout()
         vol_row.addWidget(self._volume)
         vol_row.addStretch()
@@ -188,6 +162,10 @@ class AudioTab(QWidget):
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+
+    def _on_volume_changed(self, v: int):
+        self._volume_label.setText(f"VOLUME  {v}%")
+        self.volume_changed.emit(v / 100.0)
 
     def _section_label(self, text: str) -> QLabel:
         lbl = QLabel(text)

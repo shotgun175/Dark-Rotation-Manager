@@ -11,37 +11,19 @@ from PyQt5.QtWidgets import QWidget, QApplication, QLabel
 from PyQt5.QtCore import Qt, QRect, QPoint, pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QPen, QFont
 
-
-def _get_lostark_origin():
-    """Return (left, top) of the Lost Ark window client area, or None."""
-    try:
-        import win32gui
-
-        def _cb(hwnd, results):
-            if win32gui.IsWindowVisible(hwnd):
-                if "LOST ARK" in win32gui.GetWindowText(hwnd).upper():
-                    rect = win32gui.GetClientRect(hwnd)
-                    pt = win32gui.ClientToScreen(hwnd, (rect[0], rect[1]))
-                    results.append(pt)
-
-        found = []
-        win32gui.EnumWindows(_cb, found)
-        return found[0] if found else None
-    except Exception:
-        return None
+from modules.paths import find_lostark_window
 
 
 class RegionSelectorWindow(QWidget):
     """Full-screen transparent drag-to-select widget."""
 
     region_selected = pyqtSignal(int, int, int, int)   # rel_x, rel_y, w, h
-    cancelled       = pyqtSignal()
 
     def __init__(self):
         super().__init__()
         self._start: QPoint | None = None
         self._end:   QPoint | None = None
-        self._lostark_origin = _get_lostark_origin()
+        self._lostark_origin = find_lostark_window()
 
         # Cover all monitors combined
         combined = QRect()
@@ -145,5 +127,4 @@ class RegionSelectorWindow(QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
-            self.cancelled.emit()
             self.close()
