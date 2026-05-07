@@ -74,12 +74,12 @@ class AudioManager:
     # Public API
     # ------------------------------------------------------------------
 
-    def prerender(self, players: list[str], on_done=None):
+    def prerender(self, players: list[str]):
         """Kick off background pre-rendering of all TTS phrases."""
         self._ready = False
         self._render_thread = threading.Thread(
             target=self._render_all,
-            args=(list(players), on_done),
+            args=(list(players),),
             daemon=True,
         )
         self._render_thread.start()
@@ -175,7 +175,7 @@ class AudioManager:
     # Internal
     # ------------------------------------------------------------------
 
-    def _render_all(self, players: list[str], on_done=None):
+    def _render_all(self, players: list[str]):
         """Background thread: render every TTS phrase to mp3 in parallel."""
         cfg      = self._config.get("audio", {})
         voice    = cfg.get("voice", "Andrew")
@@ -217,9 +217,6 @@ class AudioManager:
 
         self._ready = True
         print(f"[Audio] Pre-render complete — {len(self._cache)} clips ready.")
-
-        if on_done:
-            on_done()
 
     @staticmethod
     async def _async_render(text: str, voice_id: str, out_path: str):

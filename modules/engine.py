@@ -16,22 +16,12 @@ Phase 2 — Dark window (_dark_active=True):
 import threading
 import time
 from enum import Enum, auto
-from dataclasses import dataclass
 
 
 class RotationState(Enum):
     IDLE    = auto()
     RUNNING = auto()
     PAUSED  = auto()
-    STOPPED = auto()
-
-
-@dataclass
-class ThrowEvent:
-    player: str
-    is_splendid: bool
-    timestamp: float
-    duration: int
 
 
 class RotationEngine:
@@ -47,10 +37,8 @@ class RotationEngine:
 
         self.state = RotationState.IDLE
         self.players: list[str] = []
-        self.skipped: set[str] = set()
         self._exhausted: set[str] = set()          # players who hit max_throws
         self.index = 0
-        self.throw_history: list[ThrowEvent] = []
         self._throw_times: dict[str, float] = {}   # player_lower -> last throw timestamp
         self._throw_counts: dict[str, int] = {}    # player_lower -> throws this run
 
@@ -80,7 +68,6 @@ class RotationEngine:
     def set_players(self, players: list[str]):
         self.players = list(players)
         self.index = 0
-        self.skipped = set()
 
     def start(self):
         if not self.players:
@@ -99,7 +86,7 @@ class RotationEngine:
 
     def stop(self):
         self._stop_event.set()
-        self._set_state(RotationState.STOPPED)
+        self._set_state(RotationState.IDLE)
         self.index = 0
         print("[Engine] Rotation stopped.")
 
@@ -153,22 +140,6 @@ class RotationEngine:
         self.on_event("reset", {})
         print("[Engine] Rotation reset to player 1.")
 
-    def skip(self):
-        if self.state != RotationState.RUNNING:
-            return
-        print(f"[Engine] Skipping {self._current_player()}")
-        self._advance()
-        self._dark_active = False
-        self._begin_player_window()
-
-    def remove_player(self, name: str):
-        self.skipped.add(name)
-        print(f"[Engine] {name} removed from rotation.")
-
-    def add_player(self, name: str):
-        self.skipped.discard(name)
-        print(f"[Engine] {name} re-added to rotation.")
-
     def on_dark_detected(self, player: str, is_splendid: bool):
         """Called when a dark grenade throw is confirmed (via hotkey)."""
         if self.state != RotationState.RUNNING:
@@ -177,21 +148,8 @@ class RotationEngine:
             return  # buff already running — ignore duplicate confirms
 
         duration = 25 if is_splendid else 20
-        self.throw_history.append(ThrowEvent(
-            player=player, is_splendid=is_splendid,
-            timestamp=time.time(), duration=duration,
-        ))
-
-        current = self._current_player()
         kind = "Splendid Dark" if is_splendid else "Dark"
-
-        if player.lower() == current.lower():
-            self.on_event("confirmed", {"player": player, "kind": kind, "duration": duration})
-        else:
-            self.on_event("confirmed_out_of_order", {
-                "player": player, "expected": current,
-                "kind": kind, "duration": duration,
-            })
+        self.on_event("confirmed", {"player": player, "kind": kind, "duration": duration})
 
         # Record throw time and increment run count
         key = player.lower()
@@ -203,9 +161,8 @@ class RotationEngine:
         # Mark exhausted when they hit the per-run cap
         if count >= self.max_throws:
             for p in self.players:
-                if p.lower() == key and p not in self._exhausted:
+                if p.lower() == key:
                     self._exhausted.add(p)
-                    self.on_event("player_exhausted", {"player": p, "count": count})
                     break
 
         # A dark is now active regardless of who threw it.
@@ -236,9 +193,8 @@ class RotationEngine:
 
         if count >= self.max_throws:
             for p in self.players:
-                if p.lower() == key and p not in self._exhausted:
+                if p.lower() == key:
                     self._exhausted.add(p)
-                    self.on_event("player_exhausted", {"player": p, "count": count})
                     break
 
         self._advance()
@@ -348,7 +304,7 @@ class RotationEngine:
         n = len(self.players)
         for i in range(n):
             p = self.players[(self.index + i) % n]
-            if p in self.skipped or p in self._exhausted:
+            if p in self._exhausted:
                 continue
             if not self._is_on_cooldown(p):
                 return p
@@ -359,9 +315,7 @@ class RotationEngine:
             return
         self.index = (self.index + 1) % len(self.players)
         attempts = 0
-        while (self.players[self.index] in self.skipped
-               or self.players[self.index] in self._exhausted) \
-              and attempts < len(self.players):
+        while self.players[self.index] in self._exhausted and attempts < len(self.players):
             self.index = (self.index + 1) % len(self.players)
             attempts += 1
 
@@ -379,7 +333,7 @@ class RotationEngine:
         return active[(idx + 1) % len(active)]
 
     def _active_players(self) -> list[str]:
-        return [p for p in self.players if p not in self.skipped and p not in self._exhausted]
+        return [p for p in self.players if p not in self._exhausted]
 
     def _set_state(self, new_state: RotationState):
         self.state = new_state
@@ -429,5 +383,4 @@ class RotationEngine:
             "dark_active": self._dark_active,
             "players": self._active_players(),
             "index": self.index,
-            "history": self.throw_history[-5:],
         }
