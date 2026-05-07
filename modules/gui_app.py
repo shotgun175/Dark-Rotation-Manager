@@ -36,7 +36,7 @@ class ConfigApp(QMainWindow):
         self._config_path = config_path
         self._config = self._load_config()
 
-        self._controller = BotController(self._on_engine_event, BASE_DIR)
+        self._controller = BotController(self._on_engine_event)
         self._router = EventRouter(self._controller)
         self._preview_overlay = None
 

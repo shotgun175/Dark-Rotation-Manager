@@ -33,7 +33,7 @@ class RotationEngine:
         self.on_event = on_event
         self.rot_config = config.get("rotation", {})
         self.warn_secs = self.rot_config.get("warning_seconds", 5)
-        self.miss_secs = 20.0         # seconds before auto-miss fires
+        self.miss_secs = float(self.rot_config.get("miss_seconds", 20))   # seconds before auto-miss fires
         self.cooldown_secs: float = self.rot_config.get("dark_cooldown_seconds", 30.0)
 
         self.max_throws: int = self.rot_config.get("max_throws_per_run", 3)

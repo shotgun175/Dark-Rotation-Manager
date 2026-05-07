@@ -13,10 +13,9 @@ from modules.audio     import AudioManager
 
 
 class BotController:
-    def __init__(self, on_engine_event, base_dir: str):
+    def __init__(self, on_engine_event):
         """on_engine_event(event_type, data) — called from engine bg thread."""
         self._on_engine_event = on_engine_event
-        self._base_dir = base_dir
         self._last_confirm_source = "hotkey"
 
         self.engine: RotationEngine | None = None

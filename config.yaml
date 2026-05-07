@@ -3,6 +3,7 @@ audio:
     announce: true
     chime: true
     confirmed: true
+    reset: true
     rotation_complete: true
     warning: true
   enabled: true
@@ -18,8 +19,8 @@ detection:
   width: 281
 gui:
   position:
-    x: 14
-    y: 804
+    x: 37
+    y: 813
 hotkeys:
   confirm: f9
   missed: f10
@@ -37,4 +38,5 @@ rotation:
   active_roster: my_raid.yaml
   dark_cooldown_seconds: 30
   max_throws_per_run: 3
+  miss_seconds: 20
   warning_seconds: 5
