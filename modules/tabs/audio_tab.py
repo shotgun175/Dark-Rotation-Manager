@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QFrame, QCheckBox, QRadioButton, QButtonGroup
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from modules.styles import CARD_DARK, CHECKBOX_GOLD, SLIDER_GOLD
+from modules.styles import CARD_DARK, CHECKBOX_CUE_GOLD, CHECKBOX_GOLD, RADIO_GOLD, SLIDER_GOLD
 
 
 class AudioTab(QWidget):
@@ -62,15 +62,7 @@ class AudioTab(QWidget):
         for label, key in [("Andrew (Male)", "Andrew"), ("Jenny (Female)", "Jenny")]:
             rb = QRadioButton(label)
             rb.setChecked(voice == key)
-            rb.setStyleSheet(
-                "QRadioButton { color: #ccc; font-size: 14px; font-family: Consolas; }"
-                "QRadioButton:disabled { color: #444; }"
-                "QRadioButton::indicator { width: 14px; height: 14px; }"
-                "QRadioButton::indicator:checked { background: #ffd700; border: 2px solid #ffd700; border-radius: 7px; }"
-                "QRadioButton::indicator:unchecked { background: #111; border: 1px solid #555; border-radius: 7px; }"
-                "QRadioButton::indicator:checked:disabled { background: #2a2a2a; border: 2px solid #3a3a3a; border-radius: 7px; }"
-                "QRadioButton::indicator:unchecked:disabled { background: #111; border: 1px solid #333; border-radius: 7px; }"
-            )
+            rb.setStyleSheet(RADIO_GOLD)
             rb.setProperty("voice_key", key)
             self._voice_group.addButton(rb)
             voice_row.addWidget(rb)
@@ -102,15 +94,7 @@ class AudioTab(QWidget):
             row.setSpacing(8)
             cb = QCheckBox(label)
             cb.setChecked(checked)
-            cb.setStyleSheet(
-                "QCheckBox { color: #ccc; font-size: 14px; font-family: Consolas; border: none; background: transparent; }"
-                "QCheckBox:disabled { color: #444; }"
-                "QCheckBox::indicator { width: 13px; height: 13px; border: 1px solid #555; border-radius: 3px; background: #111; }"
-                "QCheckBox::indicator:checked { background: #ffd700; border-color: #ffd700; }"
-                "QCheckBox::indicator:hover { border-color: #ffd700; }"
-                "QCheckBox::indicator:disabled { background: #111; border-color: #333; }"
-                "QCheckBox::indicator:checked:disabled { background: #2a2a2a; border-color: #3a3a3a; }"
-            )
+            cb.setStyleSheet(CHECKBOX_CUE_GOLD)
             hint_lbl = QLabel(hint)
             hint_lbl.setStyleSheet(
                 "QLabel { color: #555; font-size: 13px; font-family: Consolas; background: transparent; border: none; }"

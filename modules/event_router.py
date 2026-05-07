@@ -16,7 +16,7 @@ class EventRouter:
             EngineEvent.WARNING:           self._on_warning,
             EngineEvent.ROTATION_COMPLETE: self._on_rotation_complete,
             EngineEvent.COOLDOWN_SKIP:     self._on_cooldown_skip,
-            EngineEvent.ANNOUNCE:          self._on_announce,
+            # ANNOUNCE: no overlay/UI side-effect — handled by overlay's polled status read.
         }
 
     def handle(self, event_type, data: dict, status_text_cb):
@@ -87,7 +87,3 @@ class EventRouter:
     def _on_cooldown_skip(self, data):
         if self._ctrl.overlay:
             self._ctrl.overlay.set_status_message(f"{data['player']} on cooldown", "#ffaa00")
-
-    def _on_announce(self, data):
-        # No overlay/UI side-effect — handled by overlay's polled status read.
-        pass

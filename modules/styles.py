@@ -43,6 +43,17 @@ BUTTON_NEUTRAL = (
     "padding: 4px 10px; font-family: Consolas; font-size: 14px;"
 )
 
+# Bottom-bar Launch / Stop button — toggles green ↔ red on bot start/stop.
+BUTTON_LAUNCH_GREEN = (
+    "background: #1a4a1a; color: #44ff88; border: none; "
+    "padding: 5px 16px; font-family: Consolas; font-size: 14px; font-weight: bold;"
+)
+
+BUTTON_LAUNCH_RED = (
+    "background: #4a1a1a; color: #ff4444; border: none; "
+    "padding: 5px 16px; font-family: Consolas; font-size: 14px; font-weight: bold;"
+)
+
 # ─── Labels ────────────────────────────────────────────────────────────
 LABEL_HINT    = "color: #888; font-size: 14px;"
 LABEL_SECTION = "color: #ccc; font-size: 14px; font-family: Consolas;"
@@ -64,4 +75,27 @@ CHECKBOX_GOLD = (
     "border-radius: 3px; background: #111; }"
     "QCheckBox::indicator:checked { background: #ffd700; border-color: #ffd700; }"
     "QCheckBox::indicator:hover { border-color: #ffd700; }"
+)
+
+# Cue-row checkbox — slightly smaller indicator, with disabled variants
+# applied when the master "Enable audio cues" toggle is off.
+CHECKBOX_CUE_GOLD = (
+    "QCheckBox { color: #ccc; font-size: 14px; font-family: Consolas; border: none; background: transparent; }"
+    "QCheckBox:disabled { color: #444; }"
+    "QCheckBox::indicator { width: 13px; height: 13px; border: 1px solid #555; border-radius: 3px; background: #111; }"
+    "QCheckBox::indicator:checked { background: #ffd700; border-color: #ffd700; }"
+    "QCheckBox::indicator:hover { border-color: #ffd700; }"
+    "QCheckBox::indicator:disabled { background: #111; border-color: #333; }"
+    "QCheckBox::indicator:checked:disabled { background: #2a2a2a; border-color: #3a3a3a; }"
+)
+
+# ─── Radio buttons (audio voice picker) ───────────────────────────────
+RADIO_GOLD = (
+    "QRadioButton { color: #ccc; font-size: 14px; font-family: Consolas; }"
+    "QRadioButton:disabled { color: #444; }"
+    "QRadioButton::indicator { width: 14px; height: 14px; }"
+    "QRadioButton::indicator:checked { background: #ffd700; border: 2px solid #ffd700; border-radius: 7px; }"
+    "QRadioButton::indicator:unchecked { background: #111; border: 1px solid #555; border-radius: 7px; }"
+    "QRadioButton::indicator:checked:disabled { background: #2a2a2a; border: 2px solid #3a3a3a; border-radius: 7px; }"
+    "QRadioButton::indicator:unchecked:disabled { background: #111; border: 1px solid #333; border-radius: 7px; }"
 )

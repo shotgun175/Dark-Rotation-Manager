@@ -23,6 +23,7 @@ from modules.tabs.audio_tab    import AudioTab
 from modules.roster            import RosterManager
 from modules.bot_controller    import BotController
 from modules.event_router      import EventRouter
+from modules.styles            import BUTTON_LAUNCH_GREEN, BUTTON_LAUNCH_RED
 from modules.paths             import get_base_dir
 
 BASE_DIR = get_base_dir()
@@ -145,10 +146,7 @@ class ConfigApp(QMainWindow):
         self._apply_btn.clicked.connect(self._apply)
 
         self._launch_btn = QPushButton("▶  Launch")
-        self._launch_btn.setStyleSheet(
-            "background: #1a4a1a; color: #44ff88; border: none; "
-            "padding: 5px 16px; font-family: Consolas; font-size: 14px; font-weight: bold;"
-        )
+        self._launch_btn.setStyleSheet(BUTTON_LAUNCH_GREEN)
         self._launch_btn.clicked.connect(self._toggle_bot)
 
         layout.addWidget(self._status_dot)
@@ -251,20 +249,14 @@ class ConfigApp(QMainWindow):
         )
 
         self._launch_btn.setText("■  Stop")
-        self._launch_btn.setStyleSheet(
-            "background: #4a1a1a; color: #ff4444; border: none; "
-            "padding: 5px 16px; font-family: Consolas; font-size: 14px; font-weight: bold;"
-        )
+        self._launch_btn.setStyleSheet(BUTTON_LAUNCH_RED)
         self._set_status_text("Armed  —  press F8 to start", "#ffaa00")
         self.hide()
 
     def _stop_bot(self):
         self._controller.stop()
         self._launch_btn.setText("▶  Launch")
-        self._launch_btn.setStyleSheet(
-            "background: #1a4a1a; color: #44ff88; border: none; "
-            "padding: 5px 16px; font-family: Consolas; font-size: 14px; font-weight: bold;"
-        )
+        self._launch_btn.setStyleSheet(BUTTON_LAUNCH_GREEN)
         self._set_status_text("Bot not running", "#999")
 
     def _handle_overlay_stop(self):
