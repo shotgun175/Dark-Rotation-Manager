@@ -378,7 +378,7 @@ class ConfigApp(QMainWindow):
                 else:
                     self._detection_engine.resume()
         else:
-            # IDLE / STOPPED — first start after launch
+            # IDLE — first start after launch
             self._engine.start()
             if self._detection_engine:
                 self._detection_engine.resume()

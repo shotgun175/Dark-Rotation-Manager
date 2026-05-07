@@ -35,7 +35,6 @@ class RegionSelectorWindow(QWidget):
     """Full-screen transparent drag-to-select widget."""
 
     region_selected = pyqtSignal(int, int, int, int)   # rel_x, rel_y, w, h
-    cancelled       = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -145,5 +144,4 @@ class RegionSelectorWindow(QWidget):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
-            self.cancelled.emit()
             self.close()

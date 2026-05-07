@@ -34,7 +34,6 @@ def _find_lostark_window():
     """Return (left, top) of the Lost Ark window client area, or None."""
     try:
         import win32gui
-        import win32con
 
         def _cb(hwnd, results):
             if win32gui.IsWindowVisible(hwnd):
