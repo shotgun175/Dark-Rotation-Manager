@@ -361,7 +361,7 @@ class ConfigApp(QMainWindow):
             return
         from modules.engine import RotationState
         state = self._engine.state
-        if state == RotationState.RUNNING:
+        if state in (RotationState.RUNNING_PLAYER_WINDOW, RotationState.RUNNING_DARK_WINDOW):
             self._engine.pause()
             if self._detection_engine:
                 self._detection_engine.pause()
@@ -428,7 +428,7 @@ class ConfigApp(QMainWindow):
                 self._status_dot.setStyleSheet("color: #ffaa00; font-size: 16px;")
                 self._status_text.setText("Paused  —  press F8 to resume")
                 self._status_text.setStyleSheet("color: #ffaa00; font-size: 14px;")
-            elif new_state == "RUNNING":
+            elif new_state in ("RUNNING_PLAYER_WINDOW", "RUNNING_DARK_WINDOW"):
                 self._status_dot.setStyleSheet("color: #44ff88; font-size: 16px;")
                 self._status_text.setText("Running")
                 self._status_text.setStyleSheet("color: #44ff88; font-size: 14px;")

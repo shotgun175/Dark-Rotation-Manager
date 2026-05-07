@@ -3,11 +3,11 @@ engine.py - Core rotation logic, timers, and state management
 
 Two-phase timing model
 ----------------------
-Phase 1 — Player window (_dark_active=False):
+Phase 1 — Player window (RotationState.RUNNING_PLAYER_WINDOW):
     A player has been announced. They have 4 seconds to throw before
     being called missed and the next player announced.
 
-Phase 2 — Dark window (_dark_active=True):
+Phase 2 — Dark window (RotationState.RUNNING_DARK_WINDOW):
     A dark grenade is active. The buff countdown runs for 20-25 s.
     No new player is announced until it expires, at which point the
     next player's Phase-1 window begins.
@@ -21,9 +21,10 @@ from modules.events import EngineEvent
 
 
 class RotationState(Enum):
-    IDLE    = auto()
-    RUNNING = auto()
-    PAUSED  = auto()
+    IDLE                  = auto()
+    RUNNING_PLAYER_WINDOW = auto()
+    RUNNING_DARK_WINDOW   = auto()
+    PAUSED                = auto()
 
 
 class RotationEngine:
@@ -53,7 +54,6 @@ class RotationEngine:
         self._phase1_warned: bool = False
 
         # Phase-2 (dark window) state
-        self._dark_active: bool = False
         self._dark_start: float = 0
         self._dark_duration: int = 20
         self._dark_warned: bool = False   # warning callout during dark countdown
@@ -67,6 +67,13 @@ class RotationEngine:
     # Public API
     # ------------------------------------------------------------------
 
+    @property
+    def is_running(self) -> bool:
+        return self.state in (
+            RotationState.RUNNING_PLAYER_WINDOW,
+            RotationState.RUNNING_DARK_WINDOW,
+        )
+
     def set_players(self, players: list[str]):
         self.players = list(players)
         self.index = 0
@@ -75,11 +82,9 @@ class RotationEngine:
         if not self.players:
             print("[Engine] No players loaded.")
             return
-        if self.state == RotationState.RUNNING:
+        if self.is_running:
             return
-        self._set_state(RotationState.RUNNING)
         self._stop_event.clear()
-        self._dark_active = False
         self._throw_times.clear()
         self._throw_counts.clear()
         self._exhausted.clear()
@@ -93,10 +98,10 @@ class RotationEngine:
         print("[Engine] Rotation stopped.")
 
     def pause(self):
-        if self.state != RotationState.RUNNING:
+        if not self.is_running:
             return
         # Capture current remaining time so the overlay bar stays frozen
-        if self._dark_active:
+        if self.state == RotationState.RUNNING_DARK_WINDOW:
             elapsed = time.time() - self._dark_start
             self._paused_remaining = max(0.0, self._dark_duration - elapsed)
             self._paused_duration = float(self._dark_duration)
@@ -112,28 +117,28 @@ class RotationEngine:
             return
         if dark_detected:
             # Dark is still active in-game — restart its countdown from now
-            self._dark_active = True
             self._dark_start = time.time()
             self._dark_duration = 25 if is_splendid else 20
             self._dark_warned = False
+            self._set_state(RotationState.RUNNING_DARK_WINDOW)
         else:
             # No dark active — advance to next player and start their window
             self._advance()
-            self._dark_active = False
-        self._set_state(RotationState.RUNNING)
-        self._stop_event.clear()
-        if not dark_detected:
             self._begin_player_window()
+        self._stop_event.clear()
         if not self._timer_thread or not self._timer_thread.is_alive():
             self._start_timer_thread()
         print("[Engine] Resumed.")
 
     def reset(self):
         """Reset rotation to player 1, clearing all counts. Returns to armed/idle state."""
-        if self.state not in (RotationState.RUNNING, RotationState.PAUSED):
+        if self.state not in (
+            RotationState.RUNNING_PLAYER_WINDOW,
+            RotationState.RUNNING_DARK_WINDOW,
+            RotationState.PAUSED,
+        ):
             return
         self._stop_event.set()
-        self._dark_active = False
         self._throw_times.clear()
         self._throw_counts.clear()
         self._exhausted.clear()
@@ -143,11 +148,9 @@ class RotationEngine:
         print("[Engine] Rotation reset to player 1.")
 
     def on_dark_detected(self, player: str, is_splendid: bool):
-        """Called when a dark grenade throw is confirmed (via hotkey)."""
-        if self.state != RotationState.RUNNING:
+        """Called when a dark grenade throw is confirmed (via hotkey or detection)."""
+        if self.state != RotationState.RUNNING_PLAYER_WINDOW:
             return
-        if self._dark_active:
-            return  # buff already running — ignore duplicate confirms
 
         duration = 25 if is_splendid else 20
         kind = "Splendid Dark" if is_splendid else "Dark"
@@ -172,15 +175,15 @@ class RotationEngine:
         # The next player is NOT announced until the buff expires.
         self._dark_player = player        # remember thrower for overlay display
         self._advance()
-        self._dark_active = True
         self._dark_start = time.time()
         self._dark_duration = duration
         self._dark_warned = False
+        self._set_state(RotationState.RUNNING_DARK_WINDOW)
 
     def on_dark_missed(self):
         """Called by F10 — counts the miss against the current player's throw
         limit, then immediately advances to the next player (no dark countdown)."""
-        if self.state != RotationState.RUNNING:
+        if self.state != RotationState.RUNNING_PLAYER_WINDOW:
             return
 
         player = self._current_player()
@@ -200,7 +203,6 @@ class RotationEngine:
                     break
 
         self._advance()
-        self._dark_active = False
         self._begin_player_window()
 
     # ------------------------------------------------------------------
@@ -213,12 +215,12 @@ class RotationEngine:
 
     def _timer_loop(self):
         while not self._stop_event.is_set():
-            if self.state == RotationState.RUNNING:
+            if self.is_running:
                 self._tick()
             time.sleep(0.25)
 
     def _tick(self):
-        if self._dark_active:
+        if self.state == RotationState.RUNNING_DARK_WINDOW:
             # ── Phase 2: dark buff is running ──────────────────────────
             dark_elapsed = time.time() - self._dark_start
             dark_remaining = self._dark_duration - dark_elapsed
@@ -237,30 +239,29 @@ class RotationEngine:
 
             # Dark expired → announce the next player
             if dark_remaining <= 0:
-                self._dark_active = False
                 self._begin_player_window()
+            return
 
-        else:
-            # ── Phase 1: waiting for throw ─────────────────────────────
-            elapsed = time.time() - self._player_window_start
+        # ── Phase 1: waiting for throw (RUNNING_PLAYER_WINDOW) ─────────
+        elapsed = time.time() - self._player_window_start
 
-            # Warning: alert the *next* player they're about to be called up
-            if not self._phase1_warned and elapsed >= (self.miss_secs - self.warn_secs):
-                self._phase1_warned = True
-                current = self._current_player()
-                next_up = self._next_active_player()
-                if next_up != "Nobody" and next_up != current:
-                    self.on_event(EngineEvent.WARNING, {
-                        "current": current,
-                        "next": next_up,
-                        "seconds": int(self.warn_secs),
-                    })
+        # Warning: alert the *next* player they're about to be called up
+        if not self._phase1_warned and elapsed >= (self.miss_secs - self.warn_secs):
+            self._phase1_warned = True
+            current = self._current_player()
+            next_up = self._next_active_player()
+            if next_up != "Nobody" and next_up != current:
+                self.on_event(EngineEvent.WARNING, {
+                    "current": current,
+                    "next": next_up,
+                    "seconds": int(self.warn_secs),
+                })
 
-            if not self._miss_warned and elapsed >= self.miss_secs:
-                self._miss_warned = True
-                self.on_event(EngineEvent.MISSED, {"player": self._current_player()})
-                self._advance()
-                self._begin_player_window()
+        if not self._miss_warned and elapsed >= self.miss_secs:
+            self._miss_warned = True
+            self.on_event(EngineEvent.MISSED, {"player": self._current_player()})
+            self._advance()
+            self._begin_player_window()
 
     def _begin_player_window(self):
         """Announce the current player and start the fast-miss countdown.
@@ -288,6 +289,7 @@ class RotationEngine:
         self._player_window_start = time.time()
         self._miss_warned = False
         self._phase1_warned = False
+        self._set_state(RotationState.RUNNING_PLAYER_WINDOW)
         player = self._current_player()
         self.on_event(EngineEvent.ANNOUNCE, {
             "player": player,
@@ -349,11 +351,11 @@ class RotationEngine:
         if self.state == RotationState.PAUSED:
             remaining = self._paused_remaining
             duration = self._paused_duration
-        elif self._dark_active:
+        elif self.state == RotationState.RUNNING_DARK_WINDOW:
             dark_elapsed = time.time() - self._dark_start
             remaining = max(0.0, self._dark_duration - dark_elapsed)
             duration = self._dark_duration
-        elif self.state == RotationState.RUNNING:
+        elif self.state == RotationState.RUNNING_PLAYER_WINDOW:
             elapsed = time.time() - self._player_window_start
             remaining = max(0.0, self.miss_secs - elapsed)
             duration = self.miss_secs
@@ -363,12 +365,18 @@ class RotationEngine:
 
         # During the buff countdown keep the thrower on "DARK NOW"
         # and show the upcoming player as "NEXT".
-        if self._dark_active:
+        if self.state == RotationState.RUNNING_DARK_WINDOW:
             current_display = self._dark_player or self._current_player()
             next_display    = self._current_player()
+            phase = "dark_window"
+        elif self.state == RotationState.RUNNING_PLAYER_WINDOW:
+            current_display = self._current_player()
+            next_display    = self._next_active_player()
+            phase = "player_window"
         else:
             current_display = self._current_player()
             next_display    = self._next_active_player()
+            phase = None
 
         def _count(name: str) -> str:
             c = self._throw_counts.get(name.lower(), 0)
@@ -376,13 +384,11 @@ class RotationEngine:
 
         return {
             "state": self.state.name,
+            "phase": phase,
             "current_player": current_display,
             "next_player": next_display,
             "current_count": _count(current_display),
             "next_count": _count(next_display),
             "remaining_seconds": remaining,
             "window_duration": duration,
-            "dark_active": self._dark_active,
-            "players": self._active_players(),
-            "index": self.index,
         }
