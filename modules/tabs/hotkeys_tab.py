@@ -5,6 +5,7 @@ hotkeys_tab.py - Click-to-rebind hotkey configuration rows
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
 )
+from modules.styles import LABEL_DIM
 
 ACTIONS = [
     ("start_stop", "Start / Pause rotation",  "Start, pause, or resume the rotation"),
@@ -48,7 +49,7 @@ class HotkeysTab(QWidget):
             lbl = QLabel(label)
             lbl.setStyleSheet("color: #fff; font-size: 14px; font-family: Consolas;")
             hint_lbl = QLabel(hint)
-            hint_lbl.setStyleSheet("color: #888; font-size: 14px; font-family: Consolas;")
+            hint_lbl.setStyleSheet(LABEL_DIM)
             text_col.addWidget(lbl)
             text_col.addWidget(hint_lbl)
             row_layout.addLayout(text_col)
@@ -65,7 +66,7 @@ class HotkeysTab(QWidget):
 
         layout.addStretch()
         footer = QLabel("Click a key badge to rebind. Press Escape to cancel.")
-        footer.setStyleSheet("color: #888; font-size: 14px; font-family: Consolas;")
+        footer.setStyleSheet(LABEL_DIM)
         layout.addWidget(footer)
 
     def _start_listen(self, action: str):

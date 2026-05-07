@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QFrame, QCheckBox, QRadioButton, QButtonGroup
 )
 from PyQt5.QtCore import Qt, pyqtSignal
+from modules.styles import CARD_DARK, CHECKBOX_GOLD, SLIDER_GOLD
 
 
 class AudioTab(QWidget):
@@ -36,19 +37,12 @@ class AudioTab(QWidget):
 
         # ── Master toggle card ────────────────────────────────────────
         master_card = QFrame()
-        master_card.setStyleSheet(
-            "QFrame { background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 4px; }"
-        )
+        master_card.setStyleSheet(CARD_DARK)
         mc_layout = QVBoxLayout(master_card)
         mc_layout.setContentsMargins(12, 10, 12, 10)
         self._enabled = QCheckBox("Enable audio cues")
         self._enabled.setChecked(enabled)
-        self._enabled.setStyleSheet(
-            "QCheckBox { color: #ccc; font-size: 14px; font-family: Consolas; border: none; background: transparent; }"
-            "QCheckBox::indicator { width: 14px; height: 14px; border: 1px solid #555; border-radius: 3px; background: #111; }"
-            "QCheckBox::indicator:checked { background: #ffd700; border-color: #ffd700; }"
-            "QCheckBox::indicator:hover { border-color: #ffd700; }"
-        )
+        self._enabled.setStyleSheet(CHECKBOX_GOLD)
         mc_layout.addWidget(self._enabled)
         layout.addWidget(master_card)
 
@@ -142,13 +136,10 @@ class AudioTab(QWidget):
         self._volume.setValue(volume)
         self._volume.setFixedWidth(300)
         self._volume.setStyleSheet(
-            "QSlider::groove:horizontal { background: #333; height: 6px; border-radius: 3px; }"
-            "QSlider::sub-page:horizontal { background: #ffd700; border-radius: 3px; }"
-            "QSlider::handle:horizontal { background: #fff; border: 2px solid #ffd700; "
-            "width: 14px; height: 14px; margin: -4px 0; border-radius: 7px; }"
-            "QSlider::groove:horizontal:disabled { background: #222; }"
-            "QSlider::sub-page:horizontal:disabled { background: #2a2a2a; }"
-            "QSlider::handle:horizontal:disabled { background: #333; border-color: #3a3a3a; }"
+            SLIDER_GOLD
+            + "QSlider::groove:horizontal:disabled { background: #222; }"
+            + "QSlider::sub-page:horizontal:disabled { background: #2a2a2a; }"
+            + "QSlider::handle:horizontal:disabled { background: #333; border-color: #3a3a3a; }"
         )
         self._volume.valueChanged.connect(
             lambda v: self._volume_label.setText(f"VOLUME  {v}%")

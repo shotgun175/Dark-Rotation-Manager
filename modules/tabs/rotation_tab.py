@@ -3,6 +3,7 @@ rotation_tab.py - Rotation timing settings (max throws, cooldown, warning)
 """
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox
+from modules.styles import INPUT_DARK, LABEL_HINT
 
 
 class RotationTab(QWidget):
@@ -47,14 +48,11 @@ class RotationTab(QWidget):
         spin = QSpinBox()
         spin.setRange(min_v, max_v)
         spin.setValue(value)
-        spin.setStyleSheet(
-            "background: #1a1a1a; color: #fff; border: 1px solid #333; "
-            "padding: 4px 8px; min-width: 60px; font-family: Consolas; font-size: 14px;"
-        )
+        spin.setStyleSheet(INPUT_DARK)
         row.addWidget(spin)
 
         hint_lbl = QLabel(hint)
-        hint_lbl.setStyleSheet("color: #888; font-size: 14px;")
+        hint_lbl.setStyleSheet(LABEL_HINT)
         hint_lbl.setWordWrap(True)
         row.addWidget(hint_lbl, stretch=1)
         parent.addLayout(row)
