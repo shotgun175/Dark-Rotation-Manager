@@ -16,39 +16,13 @@ import cv2
 import numpy as np
 import mss
 
-import sys as _sys
-if getattr(_sys, "frozen", False):
-    _exe_dir = os.path.dirname(_sys.executable)
-    BASE_DIR = os.path.dirname(_exe_dir) if os.path.basename(_exe_dir).lower() == "dist" else _exe_dir
-else:
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from modules.paths import get_base_dir, find_lostark_window
+
+BASE_DIR = get_base_dir()
 TEMPLATE_DIR = os.path.join(BASE_DIR, "assets", "templates")
 
 DARK_TEMPLATE_PATH      = os.path.join(TEMPLATE_DIR, "dark_grenade.png")
 SPLENDID_TEMPLATE_PATH  = os.path.join(TEMPLATE_DIR, "splendid_dark_grenade.png")
-
-LOSTARK_WINDOW_TITLE = "LOST ARK"
-
-
-def _find_lostark_window():
-    """Return (left, top) of the Lost Ark window client area, or None."""
-    try:
-        import win32gui
-
-        def _cb(hwnd, results):
-            if win32gui.IsWindowVisible(hwnd):
-                title = win32gui.GetWindowText(hwnd)
-                if LOSTARK_WINDOW_TITLE.lower() in title.lower():
-                    rect = win32gui.GetClientRect(hwnd)
-                    pt = win32gui.ClientToScreen(hwnd, (rect[0], rect[1]))
-                    results.append(pt)
-
-        found = []
-        win32gui.EnumWindows(_cb, found)
-        return found[0] if found else None
-    except Exception as e:
-        print(f"[Detection] Window find error: {e}")
-        return None
 
 
 class DetectionEngine:
@@ -123,7 +97,7 @@ class DetectionEngine:
         """One-shot synchronous scan. Returns (dark_found, is_splendid)."""
         try:
             with mss.mss() as sct:
-                win_pos = _find_lostark_window()
+                win_pos = find_lostark_window()
                 if win_pos is None:
                     return False, False
                 win_x, win_y = win_pos
@@ -164,7 +138,7 @@ class DetectionEngine:
                 time.sleep(self.scan_interval)
 
     def _scan(self, sct):
-        win_pos = _find_lostark_window()
+        win_pos = find_lostark_window()
         if win_pos is None:
             return  # Lost Ark not running/visible — silently skip
 

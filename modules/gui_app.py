@@ -18,12 +18,9 @@ from modules.tabs.overlay_tab import OverlayTab
 from modules.tabs.audio_tab import AudioTab
 from modules.roster import RosterManager
 
-import sys as _sys
-if getattr(_sys, "frozen", False):
-    _exe_dir = os.path.dirname(_sys.executable)
-    BASE_DIR = os.path.dirname(_exe_dir) if os.path.basename(_exe_dir).lower() == "dist" else _exe_dir
-else:
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from modules.paths import get_base_dir
+
+BASE_DIR = get_base_dir()
 
 
 class ConfigApp(QMainWindow):

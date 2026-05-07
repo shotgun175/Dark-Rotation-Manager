@@ -10,17 +10,14 @@ Pre-rendering runs in a background thread so the GUI stays responsive.
 """
 
 import os
-import sys
 import shutil
 import tempfile
 import asyncio
 import threading
 
-if getattr(sys, "frozen", False):
-    _exe_dir = os.path.dirname(sys.executable)
-    _BASE_DIR = os.path.dirname(_exe_dir) if os.path.basename(_exe_dir).lower() == "dist" else _exe_dir
-else:
-    _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from modules.paths import get_base_dir
+
+_BASE_DIR = get_base_dir()
 
 CHIME_PATH = os.path.join(_BASE_DIR, "assets", "sounds", "dark_confirmed.mp3")
 
