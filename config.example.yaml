@@ -7,20 +7,20 @@ audio:
     rotation_complete: true
     warning: true
   enabled: true
-  voice: Jenny
+  voice: Andrew
   volume: 0.8
 detection:
-  enabled: true
+  enabled: false
   height: 35
-  rel_x: 1246
-  rel_y: 329
+  rel_x: 875
+  rel_y: 325
   scan_interval_ms: 500
   threshold: 0.75
   width: 281
 gui:
   position:
-    x: 37
-    y: 813
+    x: 100
+    y: 100
 hotkeys:
   confirm: f9
   missed: f10
@@ -31,11 +31,11 @@ overlay:
   height: 230
   opacity: 1.0
   position:
-    x: 12
-    y: 2650
+    x: 100
+    y: 100
   width: 320
 rotation:
-  active_roster: my_raid.yaml
+  active_roster: example.yaml
   dark_cooldown_seconds: 30
   max_throws_per_run: 3
   miss_seconds: 20

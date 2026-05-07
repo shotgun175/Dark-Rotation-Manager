@@ -6,6 +6,7 @@ and the Lost Ark window not being open.
 """
 
 import os
+import shutil
 import sys
 
 
@@ -48,3 +49,27 @@ def find_lostark_window() -> tuple[int, int] | None:
     except Exception as e:
         print(f"[Paths] Lost Ark window find error: {e}")
         return None
+
+
+def ensure_user_files(base_dir: str) -> None:
+    """If config.yaml or the active roster don't exist, copy from examples."""
+    config = os.path.join(base_dir, "config.yaml")
+    config_example = os.path.join(base_dir, "config.example.yaml")
+    if not os.path.exists(config) and os.path.exists(config_example):
+        shutil.copy(config_example, config)
+        print(f"[Paths] Created {config} from example.")
+
+    # Determine active roster from the (possibly newly-copied) config
+    try:
+        import yaml
+        with open(config) as f:
+            data = yaml.safe_load(f) or {}
+        active = data.get("rotation", {}).get("active_roster", "example.yaml")
+    except Exception:
+        active = "example.yaml"
+
+    roster = os.path.join(base_dir, "rosters", active)
+    roster_example = os.path.join(base_dir, "rosters", "example.yaml")
+    if not os.path.exists(roster) and os.path.exists(roster_example):
+        shutil.copy(roster_example, roster)
+        print(f"[Paths] Created {roster} from example.")

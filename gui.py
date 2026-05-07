@@ -11,7 +11,7 @@ import ctypes
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 from modules.gui_app import ConfigApp
-from modules.paths import get_base_dir
+from modules.paths import get_base_dir, ensure_user_files
 
 # Tell Windows this is a standalone app so it gets its own taskbar icon
 # (without this, Windows groups it under the generic Python process)
@@ -24,6 +24,7 @@ BASE_DIR = get_base_dir()
 
 
 def main():
+    ensure_user_files(BASE_DIR)
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     icon_path = os.path.join(BASE_DIR, "assets", "icon.ico")
