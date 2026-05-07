@@ -155,6 +155,12 @@ class OverlayWindow(QWidget):
         if state == "PAUSED":
             self._lbl_state.setText("⏸ PAUSED")
             self._lbl_state.setStyleSheet("color: #ffaa00; background-color: transparent;")
+        elif state in ("RUNNING_PLAYER_WINDOW", "RUNNING_DARK_WINDOW"):
+            self._lbl_state.setText("▶ DARK ROTATION RUNNING")
+            self._lbl_state.setStyleSheet("color: #44ff88; background-color: transparent;")
+        elif state == "IDLE":
+            self._lbl_state.setText("● ARMED")
+            self._lbl_state.setStyleSheet("color: #ffaa00; background-color: transparent;")
         else:
             self._lbl_state.setText(state)
             self._lbl_state.setStyleSheet(f"color: {TEXT_SECONDARY}; background-color: transparent;")

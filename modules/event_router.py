@@ -67,12 +67,12 @@ class EventRouter:
     def _on_confirmed(self, data):
         if self._ctrl.overlay:
             self._ctrl.overlay.flash("#1a4a1a")
-            self._ctrl.overlay.set_status_message(f"OK {data['player']} confirmed", "#44ff88")
+            self._ctrl.overlay.set_status_message(f"✓ {data['player']} confirmed", "#44ff88")
 
     def _on_missed(self, data):
         if self._ctrl.overlay:
             self._ctrl.overlay.flash("#4a1a1a")
-            self._ctrl.overlay.set_status_message(f"X {data['player']} missed", "#ff4444")
+            self._ctrl.overlay.set_status_message(f"✗ {data['player']} missed", "#ff4444")
 
     def _on_warning(self, data):
         if self._ctrl.overlay:
