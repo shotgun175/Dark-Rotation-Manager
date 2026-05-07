@@ -115,6 +115,7 @@ class ConfigApp(QMainWindow):
 
         self._audio_tab = AudioTab(self._config)
         self._audio_tab.test_requested.connect(self._handle_audio_test)
+        self._audio_tab.volume_changed.connect(self._handle_volume_changed)
 
         self._tabs.addTab(self._roster_tab,   "Roster")
         self._tabs.addTab(self._rotation_tab, "Rotation")
@@ -478,6 +479,11 @@ class ConfigApp(QMainWindow):
     # ------------------------------------------------------------------
     # Detection region selector
     # ------------------------------------------------------------------
+
+    def _handle_volume_changed(self, volume: float):
+        """Called when user drags the Audio tab volume slider — applies live."""
+        if self._audio_mgr:
+            self._audio_mgr.set_volume(volume)
 
     def _handle_audio_test(self):
         """Play a sample TTS line for the currently selected voice."""

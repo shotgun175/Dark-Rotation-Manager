@@ -11,7 +11,8 @@ from modules.styles import CARD_DARK, CHECKBOX_GOLD, SLIDER_GOLD
 
 
 class AudioTab(QWidget):
-    test_requested = pyqtSignal()
+    test_requested  = pyqtSignal()
+    volume_changed  = pyqtSignal(float)
 
     def __init__(self, config: dict):
         super().__init__()
@@ -141,9 +142,7 @@ class AudioTab(QWidget):
             + "QSlider::sub-page:horizontal:disabled { background: #2a2a2a; }"
             + "QSlider::handle:horizontal:disabled { background: #333; border-color: #3a3a3a; }"
         )
-        self._volume.valueChanged.connect(
-            lambda v: self._volume_label.setText(f"VOLUME  {v}%")
-        )
+        self._volume.valueChanged.connect(self._on_volume_changed)
         vol_row = QHBoxLayout()
         vol_row.addWidget(self._volume)
         vol_row.addStretch()
@@ -179,6 +178,10 @@ class AudioTab(QWidget):
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+
+    def _on_volume_changed(self, v: int):
+        self._volume_label.setText(f"VOLUME  {v}%")
+        self.volume_changed.emit(v / 100.0)
 
     def _section_label(self, text: str) -> QLabel:
         lbl = QLabel(text)
