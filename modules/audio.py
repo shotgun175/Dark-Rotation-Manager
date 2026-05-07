@@ -16,6 +16,7 @@ import asyncio
 import threading
 
 from modules.paths import get_base_dir
+from modules.events import EngineEvent
 
 _BASE_DIR = get_base_dir()
 
@@ -29,11 +30,11 @@ VOICE_MAP = {
 # Maps engine event names to the cue key used in config
 # "missed" intentionally omitted — no TTS for missed throws
 EVENT_TO_CUE = {
-    "announce":          "announce",
-    "warning":           "warning",
-    "confirmed":         "confirmed",
-    "rotation_complete": "rotation_complete",
-    "reset":             "reset",
+    EngineEvent.ANNOUNCE:          "announce",
+    EngineEvent.WARNING:           "warning",
+    EngineEvent.CONFIRMED:         "confirmed",
+    EngineEvent.ROTATION_COMPLETE: "rotation_complete",
+    EngineEvent.RESET:             "reset",
 }
 
 # ------------------------------------------------------------------

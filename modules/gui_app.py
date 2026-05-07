@@ -19,6 +19,7 @@ from modules.tabs.audio_tab import AudioTab
 from modules.roster import RosterManager
 
 from modules.paths import get_base_dir
+from modules.events import EngineEvent
 
 BASE_DIR = get_base_dir()
 
@@ -421,7 +422,7 @@ class ConfigApp(QMainWindow):
         self._engine_event_signal.emit(event_type, data)
 
     def _on_engine_event_ui(self, event_type: str, data: dict):
-        if event_type == "state_change":
+        if event_type == EngineEvent.STATE_CHANGE:
             new_state = data.get("state", "")
             if new_state == "PAUSED":
                 self._status_dot.setStyleSheet("color: #ffaa00; font-size: 16px;")
@@ -437,38 +438,38 @@ class ConfigApp(QMainWindow):
                 self._status_text.setStyleSheet("color: #ffaa00; font-size: 14px;")
             return
 
-        if event_type == "reset" and self._overlay_win:
+        if event_type == EngineEvent.RESET and self._overlay_win:
             self._overlay_win.set_status_message("Rotation reset", "#88ccff")
 
-        if event_type == "confirmed" and self._overlay_win:
+        if event_type == EngineEvent.CONFIRMED and self._overlay_win:
             self._overlay_win.flash("#1a4a1a")
             self._overlay_win.set_status_message(f"OK {data['player']} confirmed", "#44ff88")
-        elif event_type == "missed" and self._overlay_win:
+        elif event_type == EngineEvent.MISSED and self._overlay_win:
             self._overlay_win.flash("#4a1a1a")
             self._overlay_win.set_status_message(f"X {data['player']} missed", "#ff4444")
-        elif event_type == "warning" and self._overlay_win:
+        elif event_type == EngineEvent.WARNING and self._overlay_win:
             self._overlay_win.set_status_message(
                 f"Next up: {data['next']} in {data['seconds']}s", "#ffdd44"
             )
-        elif event_type == "rotation_complete" and self._overlay_win:
+        elif event_type == EngineEvent.ROTATION_COMPLETE and self._overlay_win:
             self._overlay_win.set_status_message("Rotation complete", "#aaaaaa")
-        elif event_type == "cooldown_skip" and self._overlay_win:
+        elif event_type == EngineEvent.COOLDOWN_SKIP and self._overlay_win:
             self._overlay_win.set_status_message(f"{data['player']} on cooldown", "#ffaa00")
 
         # Pause detection during buff countdown, resume when next player window starts
         if self._detection_engine:
-            if event_type == "confirmed":
+            if event_type == EngineEvent.CONFIRMED:
                 self._detection_engine.pause()
-            elif event_type in ("announce", "missed", "cooldown_skip"):
+            elif event_type in (EngineEvent.ANNOUNCE, EngineEvent.MISSED, EngineEvent.COOLDOWN_SKIP):
                 self._detection_engine.resume()
 
         # Audio cues
         if self._audio_mgr:
-            if event_type == "confirmed":
+            if event_type == EngineEvent.CONFIRMED:
                 if self._last_confirm_source == "detection":
                     self._audio_mgr.play_chime()
                 else:
-                    self._audio_mgr.play_event("confirmed", data)
+                    self._audio_mgr.play_event(EngineEvent.CONFIRMED, data)
                 self._last_confirm_source = "hotkey"   # reset
             else:
                 self._audio_mgr.play_event(event_type, data)

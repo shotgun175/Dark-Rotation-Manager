@@ -17,6 +17,8 @@ import threading
 import time
 from enum import Enum, auto
 
+from modules.events import EngineEvent
+
 
 class RotationState(Enum):
     IDLE    = auto()
@@ -137,7 +139,7 @@ class RotationEngine:
         self._exhausted.clear()
         self.index = 0
         self._set_state(RotationState.IDLE)
-        self.on_event("reset", {})
+        self.on_event(EngineEvent.RESET, {})
         print("[Engine] Rotation reset to player 1.")
 
     def on_dark_detected(self, player: str, is_splendid: bool):
@@ -149,7 +151,7 @@ class RotationEngine:
 
         duration = 25 if is_splendid else 20
         kind = "Splendid Dark" if is_splendid else "Dark"
-        self.on_event("confirmed", {"player": player, "kind": kind, "duration": duration})
+        self.on_event(EngineEvent.CONFIRMED, {"player": player, "kind": kind, "duration": duration})
 
         # Record throw time and increment run count
         key = player.lower()
@@ -189,7 +191,7 @@ class RotationEngine:
         count = self._throw_counts[key]
         print(f"[Engine] {player} MISSED — throw {count}/{self.max_throws}")
 
-        self.on_event("missed", {"player": player})
+        self.on_event(EngineEvent.MISSED, {"player": player})
 
         if count >= self.max_throws:
             for p in self.players:
@@ -227,7 +229,7 @@ class RotationEngine:
                 self._dark_warned = True
                 next_up = self._next_non_cooldown_player()
                 if next_up != "Nobody":
-                    self.on_event("warning", {
+                    self.on_event(EngineEvent.WARNING, {
                         "current": "Dark",
                         "next": next_up,
                         "seconds": int(dark_remaining),
@@ -248,7 +250,7 @@ class RotationEngine:
                 current = self._current_player()
                 next_up = self._next_active_player()
                 if next_up != "Nobody" and next_up != current:
-                    self.on_event("warning", {
+                    self.on_event(EngineEvent.WARNING, {
                         "current": current,
                         "next": next_up,
                         "seconds": int(self.warn_secs),
@@ -256,7 +258,7 @@ class RotationEngine:
 
             if not self._miss_warned and elapsed >= self.miss_secs:
                 self._miss_warned = True
-                self.on_event("missed", {"player": self._current_player()})
+                self.on_event(EngineEvent.MISSED, {"player": self._current_player()})
                 self._advance()
                 self._begin_player_window()
 
@@ -266,7 +268,7 @@ class RotationEngine:
         # Stop if every player has hit the per-run throw cap
         if not self._active_players():
             print("[Engine] All players exhausted. Rotation complete.")
-            self.on_event("rotation_complete", {})
+            self.on_event(EngineEvent.ROTATION_COMPLETE, {})
             self.stop()
             return
 
@@ -277,7 +279,7 @@ class RotationEngine:
             if not self._is_on_cooldown(player):
                 break
             print(f"[Engine] {player} is on cooldown — skipping.")
-            self.on_event("cooldown_skip", {"player": player})
+            self.on_event(EngineEvent.COOLDOWN_SKIP, {"player": player})
             self._advance()
             checked += 1
         else:
@@ -287,7 +289,7 @@ class RotationEngine:
         self._miss_warned = False
         self._phase1_warned = False
         player = self._current_player()
-        self.on_event("announce", {
+        self.on_event(EngineEvent.ANNOUNCE, {
             "player": player,
             "index": self.index,
             "total": len(self._active_players()),
@@ -337,7 +339,7 @@ class RotationEngine:
 
     def _set_state(self, new_state: RotationState):
         self.state = new_state
-        self.on_event("state_change", {"state": new_state.name})
+        self.on_event(EngineEvent.STATE_CHANGE, {"state": new_state.name})
 
     # ------------------------------------------------------------------
     # Status (used by overlay)
