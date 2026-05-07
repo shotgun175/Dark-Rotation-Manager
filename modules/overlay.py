@@ -159,6 +159,13 @@ class OverlayWindow(QWidget):
             self._lbl_state.setText(state)
             self._lbl_state.setStyleSheet(f"color: {TEXT_SECONDARY}; background-color: transparent;")
 
+        phase = status.get("phase")
+        if phase == "dark_window":
+            self._lbl_current_label.setText("DARK NOW")
+        elif phase == "player_window":
+            self._lbl_current_label.setText("UP NEXT")
+        # else: leave the current text untouched (idle/paused preserves whichever phase was last shown)
+
         current = status.get("current_player", "—")
         current_count = status.get("current_count", "")
         self._lbl_current.setText(f"{current}  {current_count}" if current_count else current)
