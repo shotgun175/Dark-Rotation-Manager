@@ -11,12 +11,12 @@ audio:
   volume: 0.8
 detection:
   enabled: false
-  height: 35
+  height: 46
   rel_x: 875
   rel_y: 325
   scan_interval_ms: 500
   threshold: 0.75
-  width: 281
+  width: 456
 gui:
   position:
     x: 100

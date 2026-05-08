@@ -6,7 +6,6 @@ strings repeated 3+ times across the codebase.
 """
 
 # ─── Backgrounds & cards ───────────────────────────────────────────────
-APP_BG    = "background: #0d0d0d;"
 CARD_DARK = (
     "QFrame { background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 4px; }"
 )
