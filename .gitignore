@@ -15,3 +15,16 @@ tts_samples/
 config.yaml
 rosters/*.yaml
 !rosters/example.yaml
+
+# Editor / IDE caches
+.idea/
+.vscode/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Session/scratch artifacts (Superpowers plans, audit reports)
+docs/superpowers/
+audit-*.md

@@ -82,21 +82,13 @@ class RosterTab(QWidget):
 
     def _remove_selected(self):
         row = self._list.currentRow()
-        if row >= 0:
-            self._remove_player(row)
-
-    def _remove_player(self, row: int):
         if 0 <= row < self._list.count():
             self._list.takeItem(row)
 
     def _move_selected(self, direction: int):
         row = self._list.currentRow()
-        if row >= 0:
-            self._move_player(row, direction)
-
-    def _move_player(self, row: int, direction: int):
         new_row = row + direction
-        if new_row < 0 or new_row >= self._list.count():
+        if row < 0 or new_row < 0 or new_row >= self._list.count():
             return
         item = self._list.takeItem(row)
         self._list.insertItem(new_row, item)
@@ -108,8 +100,3 @@ class RosterTab(QWidget):
 
     def get_players(self) -> list[str]:
         return [self._list.item(i).text() for i in range(self._list.count())]
-
-    def set_players(self, players: list[str]):
-        self._list.clear()
-        for p in players:
-            self._list.addItem(p)

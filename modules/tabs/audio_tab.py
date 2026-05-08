@@ -32,9 +32,9 @@ class AudioTab(QWidget):
 
     def _build_ui(self, enabled, voice, volume,
                   announce, warning, confirmed, rotation_complete, chime, reset):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(18, 18, 18, 18)
-        layout.setSpacing(14)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(18, 18, 18, 18)
+        outer.setSpacing(14)
 
         # ── Master toggle card ────────────────────────────────────────
         master_card = QFrame()
@@ -45,14 +45,14 @@ class AudioTab(QWidget):
         self._enabled.setChecked(enabled)
         self._enabled.setStyleSheet(CHECKBOX_GOLD)
         mc_layout.addWidget(self._enabled)
-        layout.addWidget(master_card)
+        outer.addWidget(master_card)
 
         # ── Options container (grayed out when audio disabled) ────────
+        # `layout` from here on points into self._options, NOT self.
         self._options = QWidget()
-        opt_layout = QVBoxLayout(self._options)
-        opt_layout.setContentsMargins(0, 0, 0, 0)
-        opt_layout.setSpacing(14)
-        layout = opt_layout   # redirect remaining widgets into container
+        layout = QVBoxLayout(self._options)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(14)
 
         # ── Voice selection ───────────────────────────────────────────
         layout.addWidget(self._section_label("VOICE"))
@@ -149,9 +149,6 @@ class AudioTab(QWidget):
         layout.addStretch()
 
         # ── Wire up outer layout ──────────────────────────────────────
-        # `layout` now points to opt_layout (inside self._options).
-        # Restore outer_layout reference to add the container.
-        outer = self.layout()          # the QVBoxLayout set on self
         outer.addWidget(self._options)
         outer.addStretch()
 
