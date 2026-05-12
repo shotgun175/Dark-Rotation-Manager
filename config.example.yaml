@@ -10,7 +10,7 @@ audio:
   voice: Andrew
   volume: 0.8
 detection:
-  enabled: false
+  enabled: true
   height: 46
   rel_x: 875
   rel_y: 325
