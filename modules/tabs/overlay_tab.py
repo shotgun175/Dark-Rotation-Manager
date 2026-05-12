@@ -69,7 +69,7 @@ class OverlayTab(QWidget):
             height=ov.get("height", 230),
             opacity_pct=int(round(ov.get("opacity", 0.88) * 100)),
             font_size=ov.get("font_size", 16),
-            detection_enabled=det.get("enabled", False),
+            detection_enabled=det.get("enabled", True),
             det_rel_x=det.get("rel_x", 875),
             det_rel_y=det.get("rel_y", 325),
             det_w=det.get("width", 456),
@@ -77,7 +77,7 @@ class OverlayTab(QWidget):
         )
 
     def _build_ui(self, x, y, width, height, opacity_pct, font_size,
-                  detection_enabled=False, det_rel_x=875, det_rel_y=325, det_w=456, det_h=46):
+                  detection_enabled=True, det_rel_x=875, det_rel_y=325, det_w=456, det_h=46):
 
         # Single scrollable column — no competing right panel
         scroll = QScrollArea()
