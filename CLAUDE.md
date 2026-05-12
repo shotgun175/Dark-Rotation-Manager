@@ -32,5 +32,6 @@ Not every PR is a release. Only create and push a tag when the user explicitly a
 ## Build
 ```bash
 pip install pyinstaller
-pyinstaller --noconsole --onefile --icon=assets/icon.ico --name="Dark Rotation Manager" --clean --hidden-import=edge_tts --hidden-import=aiohttp gui.py
+pyinstaller --clean "Dark Rotation Manager.spec"
 ```
+Build flags and bundled data files (`config.example.yaml`, `rosters/example.yaml`, `assets/`) are declared in the `.spec` file. Edit that, not the command line, when the bundle set changes.

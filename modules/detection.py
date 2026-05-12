@@ -16,13 +16,10 @@ import cv2
 import numpy as np
 import mss
 
-from modules.paths import get_base_dir, find_lostark_window
+from modules.paths import get_resource, find_lostark_window
 
-BASE_DIR = get_base_dir()
-TEMPLATE_DIR = os.path.join(BASE_DIR, "assets", "templates")
-
-DARK_TEMPLATE_PATH      = os.path.join(TEMPLATE_DIR, "dark_grenade.png")
-SPLENDID_TEMPLATE_PATH  = os.path.join(TEMPLATE_DIR, "splendid_dark_grenade.png")
+DARK_TEMPLATE_PATH      = get_resource(os.path.join("assets", "templates", "dark_grenade.png"))
+SPLENDID_TEMPLATE_PATH  = get_resource(os.path.join("assets", "templates", "splendid_dark_grenade.png"))
 
 
 class DetectionEngine:

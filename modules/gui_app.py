@@ -25,6 +25,7 @@ from modules.bot_controller    import BotController
 from modules.event_router      import EventRouter
 from modules.styles            import BUTTON_LAUNCH_GREEN, BUTTON_LAUNCH_RED
 from modules.paths             import get_base_dir
+from modules.version           import __version__
 
 BASE_DIR = get_base_dir()
 
@@ -149,9 +150,13 @@ class ConfigApp(QMainWindow):
         self._launch_btn.setStyleSheet(BUTTON_LAUNCH_GREEN)
         self._launch_btn.clicked.connect(self._toggle_bot)
 
+        version_label = QLabel(f"v{__version__}")
+        version_label.setStyleSheet("color: #555; font-size: 12px;")
+
         layout.addWidget(self._status_dot)
         layout.addWidget(self._status_text)
         layout.addStretch()
+        layout.addWidget(version_label)
         layout.addWidget(self._apply_btn)
         layout.addWidget(self._launch_btn)
         return bar

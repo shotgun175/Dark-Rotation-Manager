@@ -147,6 +147,11 @@ MIT
 
 ## Changelog
 
+### v1.1.2 - Standalone .exe + version label
+- **Fix:** the released `.exe` now ships with everything it needs (config example, default roster, icon, OpenCV detection templates, chime sound) bundled inside. Previous releases shipped just the binary and crashed on launch in any folder that didn't already have those files
+- **New:** the current version number is shown in the bottom-right corner of the GUI, next to the Apply button
+- First-run behavior unchanged: a fresh `config.yaml` and `rosters/example.yaml` are created next to the `.exe` on the first launch
+
 ### v1.1.1 - Auto-detect on by default
 - **Default change:** "Enable grenade auto-detect" is now on by default for fresh installs. Existing `config.yaml` files are not modified — your current setting is preserved
 - Detection still no-ops gracefully if OpenCV templates are missing or Lost Ark isn't running, so the default-on is safe
