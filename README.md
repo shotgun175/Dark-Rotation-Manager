@@ -147,6 +147,10 @@ MIT
 
 ## Changelog
 
+### v1.1.1 - Auto-detect on by default
+- **Default change:** "Enable grenade auto-detect" is now on by default for fresh installs. Existing `config.yaml` files are not modified — your current setting is preserved
+- Detection still no-ops gracefully if OpenCV templates are missing or Lost Ark isn't running, so the default-on is safe
+
 ### v1.1.0 - Cleanup audit, live volume, phase-aware overlay, tunable miss_seconds
 - **New: live volume slider** — drag the Audio tab volume slider while the bot is running for instant changes (no Apply needed)
 - **New: overlay current-slot label** now reads "DARK NOW" during the buff window and "UP NEXT" during the player window, instead of always saying "DARK NOW"
