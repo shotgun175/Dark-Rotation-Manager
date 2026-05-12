@@ -29,6 +29,17 @@ def get_base_dir() -> str:
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def get_resource(rel_path: str) -> str:
+    """Resolve a read-only bundled resource (templates, examples, icons, sounds).
+
+    When frozen, files declared in PyInstaller's `datas=` are extracted to
+    `sys._MEIPASS`. When running as a script, they live in the project root.
+    """
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, rel_path)
+    return os.path.join(get_base_dir(), rel_path)
+
+
 def find_lostark_window() -> tuple[int, int] | None:
     """Return (left, top) of the Lost Ark window's client area, or None
     if Lost Ark is not visible on any monitor."""
@@ -52,9 +63,9 @@ def find_lostark_window() -> tuple[int, int] | None:
 
 
 def ensure_user_files(base_dir: str) -> None:
-    """If config.yaml or the active roster don't exist, copy from examples."""
+    """If config.yaml or the active roster don't exist, copy from bundled examples."""
     config = os.path.join(base_dir, "config.yaml")
-    config_example = os.path.join(base_dir, "config.example.yaml")
+    config_example = get_resource("config.example.yaml")
     if not os.path.exists(config) and os.path.exists(config_example):
         shutil.copy(config_example, config)
         print(f"[Paths] Created {config} from example.")
@@ -68,8 +79,10 @@ def ensure_user_files(base_dir: str) -> None:
     except Exception:
         active = "example.yaml"
 
-    roster = os.path.join(base_dir, "rosters", active)
-    roster_example = os.path.join(base_dir, "rosters", "example.yaml")
+    rosters_dir = os.path.join(base_dir, "rosters")
+    os.makedirs(rosters_dir, exist_ok=True)
+    roster = os.path.join(rosters_dir, active)
+    roster_example = get_resource(os.path.join("rosters", "example.yaml"))
     if not os.path.exists(roster) and os.path.exists(roster_example):
         shutil.copy(roster_example, roster)
         print(f"[Paths] Created {roster} from example.")

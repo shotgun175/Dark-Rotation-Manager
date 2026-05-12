@@ -15,12 +15,10 @@ import tempfile
 import asyncio
 import threading
 
-from modules.paths import get_base_dir
+from modules.paths import get_resource
 from modules.events import EngineEvent
 
-_BASE_DIR = get_base_dir()
-
-CHIME_PATH = os.path.join(_BASE_DIR, "assets", "sounds", "dark_confirmed.mp3")
+CHIME_PATH = get_resource(os.path.join("assets", "sounds", "dark_confirmed.mp3"))
 
 VOICE_MAP = {
     "Andrew": "en-US-AndrewNeural",

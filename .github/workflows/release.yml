@@ -24,16 +24,7 @@ jobs:
         run: pip install -r requirements.txt pyinstaller
 
       - name: Build exe
-        run: >
-          pyinstaller
-          --noconsole
-          --onefile
-          --icon=assets/icon.ico
-          --name="Dark Rotation Manager"
-          --clean
-          --hidden-import=edge_tts
-          --hidden-import=aiohttp
-          gui.py
+        run: pyinstaller --clean "Dark Rotation Manager.spec"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
