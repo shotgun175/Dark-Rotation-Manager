@@ -26,6 +26,7 @@ from modules.bot_controller    import BotController
 from modules.event_router      import EventRouter
 from modules.styles            import BUTTON_LAUNCH_GREEN, BUTTON_LAUNCH_RED
 from modules.paths             import get_base_dir, atomic_write_text
+from modules.update_check       import check_for_update_async
 from modules.version           import __version__
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ BASE_DIR = get_base_dir()
 
 class ConfigApp(QMainWindow):
     _engine_event_signal = pyqtSignal(object, object)
+    _update_available_signal = pyqtSignal(str)
 
     def __init__(self, config_path: str):
         super().__init__()
@@ -58,6 +60,10 @@ class ConfigApp(QMainWindow):
 
         self._build_ui()
         self._engine_event_signal.connect(self._on_engine_event_ui)
+
+        # Non-blocking "update available" check (daemon thread -> signal).
+        self._update_available_signal.connect(self._show_update_available)
+        check_for_update_async(self._update_available_signal.emit)
 
         self._status_timer = QTimer(self)
         self._status_timer.timeout.connect(self._refresh_status_bar)
@@ -157,13 +163,24 @@ class ConfigApp(QMainWindow):
         version_label = QLabel(f"v{__version__}")
         version_label.setStyleSheet("color: #555; font-size: 12px;")
 
+        self._update_label = QLabel("")
+        self._update_label.setStyleSheet("color: #ffcc44; font-size: 12px;")
+        self._update_label.setToolTip("A newer release is available on GitHub.")
+        self._update_label.setVisible(False)
+
         layout.addWidget(self._status_dot)
         layout.addWidget(self._status_text)
         layout.addStretch()
+        layout.addWidget(self._update_label)
         layout.addWidget(version_label)
         layout.addWidget(self._apply_btn)
         layout.addWidget(self._launch_btn)
         return bar
+
+    def _show_update_available(self, tag: str):
+        """Slot for _update_available_signal — reveal the non-modal banner."""
+        self._update_label.setText(f"Update available: {tag}")
+        self._update_label.setVisible(True)
 
     def _set_status_text(self, text: str, color: str):
         self._status_dot.setStyleSheet(f"color: {color}; font-size: 16px;")
