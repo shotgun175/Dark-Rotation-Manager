@@ -7,6 +7,8 @@ import os
 
 import yaml
 
+from modules.paths import atomic_write_text
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,10 +36,9 @@ class RosterManager:
         return players
 
     def save(self, filename: str, name: str, players: list[str]):
-        """Save a roster to a YAML file."""
+        """Save a roster to a YAML file (atomic write)."""
         path = os.path.join(self.rosters_dir, filename)
         data = {"name": name, "players": players}
-        with open(path, "w") as f:
-            yaml.dump(data, f, default_flow_style=False)
+        atomic_write_text(path, yaml.dump(data, default_flow_style=False))
         logger.info(f"[Roster] Saved '{name}' to {path}")
 

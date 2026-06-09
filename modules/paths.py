@@ -9,6 +9,7 @@ import logging
 import os
 import shutil
 import sys
+import tempfile
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,32 @@ def find_lostark_window() -> tuple[int, int] | None:
     except Exception as e:
         logger.warning(f"[Paths] Lost Ark window find error: {e}")
         return None
+
+
+def atomic_write_text(path: str, text: str, encoding: str = "utf-8") -> None:
+    """Write text to path atomically.
+
+    Writes to a temp file in the same directory, flushes + fsyncs it, then
+    os.replace()s it onto the target — an atomic rename on both Windows and
+    POSIX. A crash mid-write leaves the original file intact rather than
+    truncated. The temp file is removed if the replace never happens.
+    """
+    directory = os.path.dirname(os.path.abspath(path))
+    fd, tmp = tempfile.mkstemp(
+        dir=directory, prefix=os.path.basename(path) + ".", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(fd, "w", encoding=encoding) as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def ensure_user_files(base_dir: str) -> None:
