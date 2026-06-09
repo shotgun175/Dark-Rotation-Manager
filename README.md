@@ -202,6 +202,9 @@ MIT
 
 ## Changelog
 
+### v1.2.2 - Clickable update banner
+- **Improved:** the "Update available" notice in the bottom bar is now a clickable link — clicking it opens that release's GitHub page (where the `.exe` download lives) in your browser, instead of only telling you an update exists
+
 ### v1.2.1 - Lost Ark Tools hub link
 - **New:** a "Part of Lost Ark Tools" link now sits in the bottom bar next to the version number — click it to open the Lost Ark Tools hub (shotgun175.github.io) in your browser for quick access to the rest of the toolset
 - **Under the hood:** the GitHub build/release pipeline was moved to the newer Node 24 runner ahead of GitHub's June 2026 retirement of the old one. No effect on the app itself
