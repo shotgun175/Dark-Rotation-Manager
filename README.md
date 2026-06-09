@@ -202,6 +202,11 @@ MIT
 
 ## Changelog
 
+### v1.2.0 - Update notifications + crash-safe saves
+- **New: update check.** On launch the app quietly checks GitHub for a newer release and, if one exists, shows a small "Update available: vX.Y.Z" note in the bottom-right of the GUI. It never downloads or installs anything itself, and if you're offline it simply does nothing
+- **Reliability: crash-safe saves.** Your `config.yaml` and roster files are now written atomically — if the app or PC dies mid-save, the existing file is left intact instead of being corrupted. Nothing changes about how saving works day-to-day
+- **Under the hood:** added an automated test suite for the rotation timing and state logic, plus a CI check that runs it on every change. No effect on the app itself
+
 ### v1.1.3 - Diagnostic log file
 - **New:** the app now writes a rotating log file to a `logs/` folder next to the `.exe`. Since the released build runs with no console window, this is where startup errors, detection problems, and audio failures get recorded — attach it when reporting an issue
 - Older builds sent those messages to a console that the packaged `.exe` threw away, so they were invisible. Nothing about how the app runs day-to-day changes
