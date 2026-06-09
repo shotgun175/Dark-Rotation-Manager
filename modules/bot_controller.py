@@ -5,11 +5,15 @@ ConfigApp delegates start/stop/apply/volume here so the QMainWindow stays
 focused on UI concerns.
 """
 
+import logging
+
 from modules.engine    import RotationEngine, RotationState
 from modules.overlay   import OverlayWindow
 from modules.hotkeys   import HotkeyManager
 from modules.detection import DetectionEngine
 from modules.audio     import AudioManager
+
+logger = logging.getLogger(__name__)
 
 
 class BotController:
@@ -145,7 +149,7 @@ class BotController:
         status = self.engine.get_status()
         player = status.get("current_player", "Unknown")
         kind = "Splendid Dark" if is_splendid else "Dark"
-        print(f"[Detection] Auto-confirmed: {player} ({kind})")
+        logger.info(f"[Detection] Auto-confirmed: {player} ({kind})")
         self.engine.on_dark_detected(player, is_splendid=is_splendid)
 
     # ── Used by EventRouter ──────────────────────────────────────────

@@ -6,6 +6,7 @@ BotController. Engine event dispatch lives in EventRouter. ConfigApp is
 a UI shell that builds tabs and delegates.
 """
 
+import logging
 import os
 import yaml
 from PyQt5.QtWidgets import (
@@ -26,6 +27,8 @@ from modules.event_router      import EventRouter
 from modules.styles            import BUTTON_LAUNCH_GREEN, BUTTON_LAUNCH_RED
 from modules.paths             import get_base_dir
 from modules.version           import __version__
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = get_base_dir()
 
@@ -315,7 +318,7 @@ class ConfigApp(QMainWindow):
     def _on_region_selected(self, rel_x: int, rel_y: int, w: int, h: int):
         """Fills spinboxes with drawn region — user still clicks Apply to save."""
         self._overlay_tab.set_detection_region(rel_x, rel_y, w, h)
-        print(f"[Detection] Region drawn: rel_x={rel_x} rel_y={rel_y} w={w} h={h}")
+        logger.info(f"[Detection] Region drawn: rel_x={rel_x} rel_y={rel_y} w={w} h={h}")
 
     # ------------------------------------------------------------------
     # Overlay auto-save position

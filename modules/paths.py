@@ -5,10 +5,12 @@ Both helpers tolerate frozen-vs-script execution (PyInstaller .exe vs python gui
 and the Lost Ark window not being open.
 """
 
+import logging
 import os
 import shutil
 import sys
 
+logger = logging.getLogger(__name__)
 
 LOSTARK_WINDOW_TITLE = "LOST ARK"
 
@@ -58,7 +60,7 @@ def find_lostark_window() -> tuple[int, int] | None:
         win32gui.EnumWindows(_cb, found)
         return found[0] if found else None
     except Exception as e:
-        print(f"[Paths] Lost Ark window find error: {e}")
+        logger.warning(f"[Paths] Lost Ark window find error: {e}")
         return None
 
 
@@ -68,7 +70,7 @@ def ensure_user_files(base_dir: str) -> None:
     config_example = get_resource("config.example.yaml")
     if not os.path.exists(config) and os.path.exists(config_example):
         shutil.copy(config_example, config)
-        print(f"[Paths] Created {config} from example.")
+        logger.info(f"[Paths] Created {config} from example.")
 
     # Determine active roster from the (possibly newly-copied) config
     try:
@@ -85,4 +87,4 @@ def ensure_user_files(base_dir: str) -> None:
     roster_example = get_resource(os.path.join("rosters", "example.yaml"))
     if not os.path.exists(roster) and os.path.exists(roster_example):
         shutil.copy(roster_example, roster)
-        print(f"[Paths] Created {roster} from example.")
+        logger.info(f"[Paths] Created {roster} from example.")

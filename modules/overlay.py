@@ -2,9 +2,13 @@
 overlay.py - Always-on-top countdown and rotation display (PyQt5)
 """
 
+import logging
+
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton
 from PyQt5.QtCore import Qt, QTimer, QPoint
 from PyQt5.QtGui import QFont
+
+logger = logging.getLogger(__name__)
 
 BG_COLOR      = "#0d0d0d"
 TEXT_SECONDARY = "#aaaaaa"
@@ -148,7 +152,7 @@ class OverlayWindow(QWidget):
         try:
             self._render(self.get_status())
         except Exception as e:
-            print(f"[Overlay] Render error: {e}")
+            logger.exception(f"[Overlay] Render error: {e}")
 
     def _render(self, status: dict):
         state = status.get("state", "IDLE")

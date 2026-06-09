@@ -2,8 +2,12 @@
 roster.py - Load, save, and manage player rotation lists
 """
 
+import logging
 import os
+
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 class RosterManager:
@@ -26,7 +30,7 @@ class RosterManager:
 
         players = [str(p) for p in data.get("players", [])]
         self.current_roster_name = data.get("name", filename)
-        print(f"[Roster] Loaded '{self.current_roster_name}': {players}")
+        logger.info(f"[Roster] Loaded '{self.current_roster_name}': {players}")
         return players
 
     def save(self, filename: str, name: str, players: list[str]):
@@ -35,5 +39,5 @@ class RosterManager:
         data = {"name": name, "players": players}
         with open(path, "w") as f:
             yaml.dump(data, f, default_flow_style=False)
-        print(f"[Roster] Saved '{name}' to {path}")
+        logger.info(f"[Roster] Saved '{name}' to {path}")
 

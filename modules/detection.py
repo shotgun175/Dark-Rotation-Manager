@@ -8,6 +8,7 @@ debuff icon. When detected, calls on_detected(is_splendid) on the main
 rotation engine.
 """
 
+import logging
 import os
 import time
 import threading
@@ -17,6 +18,8 @@ import numpy as np
 import mss
 
 from modules.paths import get_resource, find_lostark_window
+
+logger = logging.getLogger(__name__)
 
 DARK_TEMPLATE_PATH      = get_resource(os.path.join("assets", "templates", "dark_grenade.png"))
 SPLENDID_TEMPLATE_PATH  = get_resource(os.path.join("assets", "templates", "splendid_dark_grenade.png"))
@@ -41,9 +44,9 @@ class DetectionEngine:
         self._splendid_tmpl = self._load_template(SPLENDID_TEMPLATE_PATH)
 
         if self._dark_tmpl is None:
-            print(f"[Detection] WARNING: dark_grenade.png not found at {DARK_TEMPLATE_PATH}")
+            logger.warning(f"[Detection] dark_grenade.png not found at {DARK_TEMPLATE_PATH}")
         if self._splendid_tmpl is None:
-            print(f"[Detection] WARNING: splendid_dark_grenade.png not found at {SPLENDID_TEMPLATE_PATH}")
+            logger.warning(f"[Detection] splendid_dark_grenade.png not found at {SPLENDID_TEMPLATE_PATH}")
 
     def _load_config(self):
         det = self._config.get("detection", {})
@@ -68,19 +71,19 @@ class DetectionEngine:
         if self._running:
             return
         if self._dark_tmpl is None or self._splendid_tmpl is None:
-            print("[Detection] Cannot start — template images missing.")
+            logger.error("[Detection] Cannot start — template images missing.")
             return
         self._running = True
         self._paused = False
         self._stop_event.clear()
         self._thread = threading.Thread(target=self._loop, daemon=True)
         self._thread.start()
-        print("[Detection] Started.")
+        logger.info("[Detection] Started.")
 
     def stop(self):
         self._running = False
         self._stop_event.set()
-        print("[Detection] Stopped.")
+        logger.info("[Detection] Stopped.")
 
     def pause(self):
         """Call while dark buff is active — no need to scan."""
@@ -113,7 +116,7 @@ class DetectionEngine:
                     return True, False
                 return False, False
         except Exception as e:
-            print(f"[Detection] check_now error: {e}")
+            logger.exception(f"[Detection] check_now error: {e}")
             return False, False
 
     def update_config(self, config: dict):
@@ -131,7 +134,7 @@ class DetectionEngine:
                     try:
                         self._scan(sct)
                     except Exception as e:
-                        print(f"[Detection] Scan error: {e}")
+                        logger.exception(f"[Detection] Scan error: {e}")
                 time.sleep(self.scan_interval)
 
     def _scan(self, sct):
@@ -153,13 +156,13 @@ class DetectionEngine:
 
         # Check splendid first (more specific match wins)
         if self._match(gray, self._splendid_tmpl):
-            print("[Detection] Splendid Dark Grenade detected!")
+            logger.info("[Detection] Splendid Dark Grenade detected!")
             self._paused = True   # stop scanning until resumed
             self._on_detected(is_splendid=True)
             return
 
         if self._match(gray, self._dark_tmpl):
-            print("[Detection] Dark Grenade detected!")
+            logger.info("[Detection] Dark Grenade detected!")
             self._paused = True
             self._on_detected(is_splendid=False)
 
