@@ -103,7 +103,7 @@ class ConfigApp(QMainWindow):
             }}
         """)
 
-        roster_file = self._config.get("rotation", {}).get("active_roster", "my_raid.yaml")
+        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
         self._roster_mgr = RosterManager(os.path.join(BASE_DIR, "rosters"))
         players = self._roster_mgr.load(roster_file)
 
@@ -213,7 +213,7 @@ class ConfigApp(QMainWindow):
 
         self._save_config()
 
-        roster_file = self._config.get("rotation", {}).get("active_roster", "my_raid.yaml")
+        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
         self._roster_mgr.save(
             roster_file,
             self._roster_mgr.current_roster_name or roster_file,
@@ -245,7 +245,7 @@ class ConfigApp(QMainWindow):
 
     def _start_bot(self):
         self._config = self._load_config()
-        roster_file = self._config.get("rotation", {}).get("active_roster", "my_raid.yaml")
+        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
         players = self._roster_mgr.load(roster_file)
 
         self._controller.start(
