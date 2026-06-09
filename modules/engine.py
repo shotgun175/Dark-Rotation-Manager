@@ -4,8 +4,9 @@ engine.py - Core rotation logic, timers, and state management
 Two-phase timing model
 ----------------------
 Phase 1 — Player window (RotationState.RUNNING_PLAYER_WINDOW):
-    A player has been announced. They have 4 seconds to throw before
-    being called missed and the next player announced.
+    A player has been announced. They have 20 seconds (default;
+    configurable via the miss_seconds setting) to throw before being
+    called missed and the next player announced.
 
 Phase 2 — Dark window (RotationState.RUNNING_DARK_WINDOW):
     A dark grenade is active. The buff countdown runs for 20-25 s.

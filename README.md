@@ -97,7 +97,7 @@ rotation:
   warning_seconds: 5            # warning callout N seconds before next window
   dark_cooldown_seconds: 30     # skip players whose grenade is still on cooldown
   max_throws_per_run: 3         # per-player throw cap; rotation ends when all reach it
-  active_roster: my_raid.yaml
+  active_roster: example.yaml
 
 hotkeys:
   start_stop: f8
