@@ -90,6 +90,61 @@ Rebind any key in the GUI under the **Hotkeys** tab, or directly in `config.yaml
 
 ---
 
+## Assumptions, scope, and open questions
+
+This tool watches the screen and drives timers and hotkeys — it does **not** read
+game memory or any Lost Ark API. The points below are what it assumes about your
+setup, verified against the current code.
+
+### Confirmed assumptions
+
+- **English game client.** The app finds the game by looking for a visible window
+  whose title contains `LOST ARK` (case-insensitive) — `LOSTARK_WINDOW_TITLE` in
+  `modules/paths.py`. A localized client with a translated window title won't be
+  found, so auto-detection and window-relative positioning won't work on it.
+- **Window position and monitor are handled automatically.** The detection region
+  is anchored to the Lost Ark window's client top-left and resolved to absolute
+  screen coordinates, so the game can sit on any monitor, anywhere, windowed or
+  borderless — detection follows it.
+- **The detection region and icon templates assume a fixed resolution / UI scale.**
+  The default scan region is a pixel rectangle offset from the window's top-left
+  (`rel_x: 875, rel_y: 325, width: 456, height: 46`), and the bundled debuff
+  templates are fixed **28×28 px** images matched with OpenCV at a `0.75`
+  confidence threshold. Matching is **not** scale-invariant: the template is only
+  shrunk if it is larger than the scan region, and is never enlarged. If your
+  in-game resolution or UI scale differs from these capture defaults, the debuff
+  bar won't line up with the default region and the on-screen icon may not match
+  the template. Fix it by redrawing the region with the drag-to-draw tool in the
+  **Overlay** tab (or by adjusting the spinboxes / threshold in `config.yaml`).
+- **Hotkeys are global.** They are registered system-wide (via the `keyboard`
+  library), so they fire while Lost Ark has focus.
+
+### Open questions
+
+- **Exclusive fullscreen vs. borderless.** Capture uses `mss` (a desktop screen
+  grab). Borderless windowed is the safe choice; exclusive-fullscreen capture
+  behaviour has not been verified.
+- **Multiple game windows.** If more than one visible window matches `LOST ARK`,
+  the first one Windows enumerates is used — multi-client setups are unhandled.
+- **Reference resolution.** The exact resolution / UI scale that the default region
+  and templates were captured at isn't recorded; treat the defaults as a starting
+  point and redraw the region for your own setup.
+
+### Scope (out)
+
+- **No auto-update.** The launch check only *notifies* you when a newer release
+  exists; it never downloads or replaces the executable (the onefile build is
+  unsigned).
+- **No game integration.** No memory reading, packet inspection, or input
+  automation into the game — it only reads the debuff icon from the screen and
+  listens for your hotkeys.
+- **Windows only.** Window discovery and global hotkeys rely on Windows APIs.
+
+> Not affiliated with, endorsed by, or associated with Smilegate or Amazon Games.
+> "Lost Ark" is the property of its respective owners.
+
+---
+
 ## Config reference
 
 ```yaml
