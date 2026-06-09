@@ -163,6 +163,14 @@ class ConfigApp(QMainWindow):
         version_label = QLabel(f"v{__version__}")
         version_label.setStyleSheet("color: #555; font-size: 12px;")
 
+        hub_link = QLabel(
+            '<a href="https://shotgun175.github.io/" '
+            'style="color:#f0b94d;text-decoration:none;">Part of Lost Ark Tools ↗</a>'
+        )
+        hub_link.setStyleSheet("font-size: 12px;")
+        hub_link.setOpenExternalLinks(True)
+        hub_link.setToolTip("Open the Lost Ark Tools hub in your browser")
+
         self._update_label = QLabel("")
         self._update_label.setStyleSheet("color: #ffcc44; font-size: 12px;")
         self._update_label.setToolTip("A newer release is available on GitHub.")
@@ -171,6 +179,7 @@ class ConfigApp(QMainWindow):
         layout.addWidget(self._status_dot)
         layout.addWidget(self._status_text)
         layout.addStretch()
+        layout.addWidget(hub_link)
         layout.addWidget(self._update_label)
         layout.addWidget(version_label)
         layout.addWidget(self._apply_btn)

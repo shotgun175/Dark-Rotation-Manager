@@ -202,6 +202,10 @@ MIT
 
 ## Changelog
 
+### v1.2.1 - Lost Ark Tools hub link
+- **New:** a "Part of Lost Ark Tools" link now sits in the bottom bar next to the version number — click it to open the Lost Ark Tools hub (shotgun175.github.io) in your browser for quick access to the rest of the toolset
+- **Under the hood:** the GitHub build/release pipeline was moved to the newer Node 24 runner ahead of GitHub's June 2026 retirement of the old one. No effect on the app itself
+
 ### v1.2.0 - Update notifications + crash-safe saves
 - **New: update check.** On launch the app quietly checks GitHub for a newer release and, if one exists, shows a small "Update available: vX.Y.Z" note in the bottom-right of the GUI. It never downloads or installs anything itself, and if you're offline it simply does nothing
 - **Reliability: crash-safe saves.** Your `config.yaml` and roster files are now written atomically — if the app or PC dies mid-save, the existing file is left intact instead of being corrupted. Nothing changes about how saving works day-to-day
