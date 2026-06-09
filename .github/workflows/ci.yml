@@ -2,7 +2,13 @@ name: CI
 
 on:
   push:
+    branches: [main]   # post-merge check; PRs are covered by pull_request below
   pull_request:
+
+concurrency:
+  # One in-flight run per ref; a newer push cancels the older, superseded run.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
