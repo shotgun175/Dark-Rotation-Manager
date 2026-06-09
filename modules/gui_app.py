@@ -25,7 +25,7 @@ from modules.roster            import RosterManager
 from modules.bot_controller    import BotController
 from modules.event_router      import EventRouter
 from modules.styles            import BUTTON_LAUNCH_GREEN, BUTTON_LAUNCH_RED
-from modules.paths             import get_base_dir
+from modules.paths             import get_base_dir, atomic_write_text
 from modules.version           import __version__
 
 logger = logging.getLogger(__name__)
@@ -72,8 +72,9 @@ class ConfigApp(QMainWindow):
             return yaml.safe_load(f)
 
     def _save_config(self):
-        with open(self._config_path, "w") as f:
-            yaml.dump(self._config, f, default_flow_style=False)
+        atomic_write_text(
+            self._config_path, yaml.dump(self._config, default_flow_style=False)
+        )
 
     # ------------------------------------------------------------------
     # UI construction
