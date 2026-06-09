@@ -9,6 +9,7 @@ All pygame calls happen on the main thread (called from _on_engine_event_ui).
 Pre-rendering runs in a background thread so the GUI stays responsive.
 """
 
+import logging
 import os
 import shutil
 import tempfile
@@ -17,6 +18,8 @@ import threading
 
 from modules.paths import get_resource
 from modules.events import EngineEvent
+
+logger = logging.getLogger(__name__)
 
 CHIME_PATH = get_resource(os.path.join("assets", "sounds", "dark_confirmed.mp3"))
 
@@ -46,7 +49,7 @@ try:
     pygame.mixer.set_num_channels(8)
     _pygame_ok = True
 except Exception as e:
-    print(f"[Audio] pygame init failed: {e}")
+    logger.exception(f"[Audio] pygame init failed: {e}")
 
 
 class AudioManager:
@@ -144,7 +147,7 @@ class AudioManager:
                 asyncio.run(self._async_render("Dark confirmed", voice_id, out))
                 self._play_tts(out)
             except Exception as e:
-                print(f"[Audio] Test render failed: {e}")
+                logger.exception(f"[Audio] Test render failed: {e}")
 
     def set_volume(self, volume: float):
         self._volume = max(0.0, min(1.0, volume))
@@ -202,17 +205,17 @@ class AudioManager:
             )
             for (text, key), result in zip(to_render, results):
                 if isinstance(result, Exception):
-                    print(f"[Audio] Render failed for '{text}': {result}")
+                    logger.error(f"[Audio] Render failed for '{text}': {result}")
                 else:
                     self._cache[key] = out_paths[key]
 
         try:
             asyncio.run(_run_parallel())
         except Exception as e:
-            print(f"[Audio] Parallel render error: {e}")
+            logger.exception(f"[Audio] Parallel render error: {e}")
 
         self._ready = True
-        print(f"[Audio] Pre-render complete — {len(self._cache)} clips ready.")
+        logger.info(f"[Audio] Pre-render complete — {len(self._cache)} clips ready.")
 
     @staticmethod
     async def _async_render(text: str, voice_id: str, out_path: str):
@@ -226,16 +229,16 @@ class AudioManager:
             pygame.mixer.music.set_volume(self._volume)
             pygame.mixer.music.play()
         except Exception as e:
-            print(f"[Audio] Playback error: {e}")
+            logger.exception(f"[Audio] Playback error: {e}")
 
     def _load_chime(self):
         if not os.path.exists(CHIME_PATH):
-            print(f"[Audio] Chime not found: {CHIME_PATH}")
+            logger.warning(f"[Audio] Chime not found: {CHIME_PATH}")
             return None
         try:
             return pygame.mixer.Sound(CHIME_PATH)
         except Exception as e:
-            print(f"[Audio] Failed to load chime: {e}")
+            logger.exception(f"[Audio] Failed to load chime: {e}")
             return None
 
     @staticmethod

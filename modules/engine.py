@@ -14,11 +14,14 @@ Phase 2 — Dark window (RotationState.RUNNING_DARK_WINDOW):
     next player's Phase-1 window begins.
 """
 
+import logging
 import threading
 import time
 from enum import Enum, auto
 
 from modules.events import EngineEvent
+
+logger = logging.getLogger(__name__)
 
 
 class RotationState(Enum):
@@ -81,7 +84,7 @@ class RotationEngine:
 
     def start(self):
         if not self.players:
-            print("[Engine] No players loaded.")
+            logger.warning("[Engine] No players loaded.")
             return
         if self.is_running:
             return
@@ -96,7 +99,7 @@ class RotationEngine:
         self._stop_event.set()
         self._set_state(RotationState.IDLE)
         self.index = 0
-        print("[Engine] Rotation stopped.")
+        logger.info("[Engine] Rotation stopped.")
 
     def pause(self):
         if not self.is_running:
@@ -111,7 +114,7 @@ class RotationEngine:
             self._paused_remaining = max(0.0, self.miss_secs - elapsed)
             self._paused_duration = self.miss_secs
         self._set_state(RotationState.PAUSED)
-        print("[Engine] Paused.")
+        logger.info("[Engine] Paused.")
 
     def resume(self, dark_detected: bool = False, is_splendid: bool = False):
         if self.state != RotationState.PAUSED:
@@ -129,7 +132,7 @@ class RotationEngine:
         self._stop_event.clear()
         if not self._timer_thread or not self._timer_thread.is_alive():
             self._start_timer_thread()
-        print("[Engine] Resumed.")
+        logger.info("[Engine] Resumed.")
 
     def reset(self):
         """Reset rotation to player 1, clearing all counts. Returns to armed/idle state."""
@@ -146,7 +149,7 @@ class RotationEngine:
         self.index = 0
         self._set_state(RotationState.IDLE)
         self.on_event(EngineEvent.RESET, {})
-        print("[Engine] Rotation reset to player 1.")
+        logger.info("[Engine] Rotation reset to player 1.")
 
     def on_dark_detected(self, player: str, is_splendid: bool):
         """Called when a dark grenade throw is confirmed (via hotkey or detection)."""
@@ -162,7 +165,7 @@ class RotationEngine:
         self._throw_times[key] = time.time()
         self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
         count = self._throw_counts[key]
-        print(f"[Engine] {player} throw {count}/{self.max_throws}")
+        logger.info(f"[Engine] {player} throw {count}/{self.max_throws}")
 
         # Mark exhausted when they hit the per-run cap
         if count >= self.max_throws:
@@ -193,7 +196,7 @@ class RotationEngine:
         self._throw_times[key] = time.time()
         self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
         count = self._throw_counts[key]
-        print(f"[Engine] {player} MISSED — throw {count}/{self.max_throws}")
+        logger.info(f"[Engine] {player} MISSED — throw {count}/{self.max_throws}")
 
         self.on_event(EngineEvent.MISSED, {"player": player})
 
@@ -269,7 +272,7 @@ class RotationEngine:
         Auto-skips cooldown players; stops the bot if everyone is exhausted."""
         # Stop if every player has hit the per-run throw cap
         if not self._active_players():
-            print("[Engine] All players exhausted. Rotation complete.")
+            logger.info("[Engine] All players exhausted. Rotation complete.")
             self.on_event(EngineEvent.ROTATION_COMPLETE, {})
             self.stop()
             return
@@ -280,12 +283,12 @@ class RotationEngine:
             player = self._current_player()
             if not self._is_on_cooldown(player):
                 break
-            print(f"[Engine] {player} is on cooldown — skipping.")
+            logger.debug(f"[Engine] {player} is on cooldown — skipping.")
             self.on_event(EngineEvent.COOLDOWN_SKIP, {"player": player})
             self._advance()
             checked += 1
         else:
-            print("[Engine] All active players on cooldown — announcing anyway.")
+            logger.debug("[Engine] All active players on cooldown — announcing anyway.")
 
         self._player_window_start = time.time()
         self._miss_warned = False

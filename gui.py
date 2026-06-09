@@ -8,6 +8,13 @@ Usage:
 import sys
 import os
 import ctypes
+
+from modules.log_setup import setup_logging
+
+# Initialize file logging before importing modules that emit logs at import
+# time (e.g. audio.py's module-level pygame init), so nothing is lost.
+LOG_PATH = setup_logging()
+
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 from modules.gui_app import ConfigApp

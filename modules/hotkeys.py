@@ -2,7 +2,11 @@
 hotkeys.py - Global hotkey listener (works while Lost Ark is in focus)
 """
 
+import logging
+
 import keyboard
+
+logger = logging.getLogger(__name__)
 
 
 class HotkeyManager:
@@ -33,9 +37,9 @@ class HotkeyManager:
             if fn:
                 keyboard.add_hotkey(key, fn, suppress=False)
                 self._registered.append(key)
-                print(f"[Hotkeys] {key.upper()} -> {action}")
+                logger.debug(f"[Hotkeys] {key.upper()} -> {action}")
 
-        print("[Hotkeys] Listening.")
+        logger.info("[Hotkeys] Listening.")
 
     def stop(self):
         """Unregister all hotkeys."""
@@ -45,7 +49,7 @@ class HotkeyManager:
             except Exception:
                 pass
         self._registered.clear()
-        print("[Hotkeys] Unregistered.")
+        logger.info("[Hotkeys] Unregistered.")
 
     def update_key(self, action: str, new_key: str):
         """Hot-swap a key binding without restarting."""
@@ -60,4 +64,4 @@ class HotkeyManager:
         if fn:
             keyboard.add_hotkey(new_key, fn, suppress=False)
             self.config[action] = new_key
-            print(f"[Hotkeys] {action} rebound to {new_key.upper()}")
+            logger.info(f"[Hotkeys] {action} rebound to {new_key.upper()}")

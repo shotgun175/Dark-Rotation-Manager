@@ -147,6 +147,10 @@ MIT
 
 ## Changelog
 
+### v1.1.3 - Diagnostic log file
+- **New:** the app now writes a rotating log file to a `logs/` folder next to the `.exe`. Since the released build runs with no console window, this is where startup errors, detection problems, and audio failures get recorded — attach it when reporting an issue
+- Older builds sent those messages to a console that the packaged `.exe` threw away, so they were invisible. Nothing about how the app runs day-to-day changes
+
 ### v1.1.2 - Standalone .exe + version label
 - **Fix:** the released `.exe` now ships with everything it needs (config example, default roster, icon, OpenCV detection templates, chime sound) bundled inside. Previous releases shipped just the binary and crashed on launch in any folder that didn't already have those files
 - **New:** the current version number is shown in the bottom-right corner of the GUI, next to the Apply button

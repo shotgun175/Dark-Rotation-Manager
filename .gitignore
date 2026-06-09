@@ -4,6 +4,7 @@ __pycache__/
 *.pyd
 .env
 *.log
+logs/
 .claude/
 build/
 dist/
