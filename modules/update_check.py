@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 GITHUB_API_LATEST = (
     "https://api.github.com/repos/shotgun175/Dark-Rotation-Manager/releases/latest"
 )
+# Public release page where the .exe assets live; "{tag}" -> the release tag.
+GITHUB_RELEASES_URL = "https://github.com/shotgun175/Dark-Rotation-Manager/releases"
 _USER_AGENT = "Dark-Rotation-Manager-update-check"
 _TIMEOUT_SECONDS = 5.0
 

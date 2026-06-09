@@ -26,7 +26,7 @@ from modules.bot_controller    import BotController
 from modules.event_router      import EventRouter
 from modules.styles            import BUTTON_LAUNCH_GREEN, BUTTON_LAUNCH_RED
 from modules.paths             import get_base_dir, atomic_write_text
-from modules.update_check       import check_for_update_async
+from modules.update_check       import check_for_update_async, GITHUB_RELEASES_URL
 from modules.version           import __version__
 
 logger = logging.getLogger(__name__)
@@ -173,6 +173,7 @@ class ConfigApp(QMainWindow):
 
         self._update_label = QLabel("")
         self._update_label.setStyleSheet("color: #ffcc44; font-size: 12px;")
+        self._update_label.setOpenExternalLinks(True)
         self._update_label.setToolTip("A newer release is available on GitHub.")
         self._update_label.setVisible(False)
 
@@ -187,8 +188,17 @@ class ConfigApp(QMainWindow):
         return bar
 
     def _show_update_available(self, tag: str):
-        """Slot for _update_available_signal — reveal the non-modal banner."""
-        self._update_label.setText(f"Update available: {tag}")
+        """Slot for _update_available_signal — reveal the clickable banner.
+
+        The banner links to that release's GitHub page (where the .exe asset
+        lives); the click is handled by the label via setOpenExternalLinks.
+        """
+        url = f"{GITHUB_RELEASES_URL}/tag/{tag}"
+        self._update_label.setText(
+            f'<a href="{url}" style="color:#ffcc44;text-decoration:none;">'
+            f'Update available: {tag} ↗</a>'
+        )
+        self._update_label.setToolTip(f"Click to open the {tag} release on GitHub")
         self._update_label.setVisible(True)
 
     def _set_status_text(self, text: str, color: str):
