@@ -263,7 +263,12 @@ class ConfigApp(QMainWindow):
         )
 
         if self._controller.is_running:
-            self._controller.apply(self._config, players)
+            needs_restart = self._controller.apply(self._config, players)
+            if needs_restart:
+                self._set_status_text(
+                    "Saved — restart the bot to apply: " + ", ".join(needs_restart),
+                    "#ffaa00",
+                )
 
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")

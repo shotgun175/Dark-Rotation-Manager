@@ -12,7 +12,7 @@ overlay and configurable hotkeys. Confirms throws manually via hotkey.
 - Auto-skips players whose grenade is still on cooldown
 - Tracks per-player throw count; stops the rotation when everyone hits the cap
 - Configurable hotkeys (works while Lost Ark is in focus)
-- PyQt5 GUI for editing roster, rotation settings, hotkeys, and overlay — live while the bot is running
+- PyQt5 GUI for editing roster, rotation settings, hotkeys, and overlay — most changes apply live while the bot is running (turning detection or audio on/off mid-run needs a bot restart; the status bar tells you when)
 - Overlay position saves automatically when dragged; restores on next launch
 - GUI window position also saves and restores on next launch
 - Optional OpenCV auto-detection: scans boss debuff bar for Dark / Splendid Dark Grenade icon and auto-confirms with correct timer (20s / 25s)
