@@ -14,6 +14,7 @@ Phase 2 — Dark window (RotationState.RUNNING_DARK_WINDOW):
     next player's Phase-1 window begins.
 """
 
+import functools
 import logging
 import threading
 import time
@@ -22,6 +23,17 @@ from enum import Enum, auto
 from modules.events import EngineEvent
 
 logger = logging.getLogger(__name__)
+
+
+def _locked(method):
+    """Run an engine mutator while holding the engine's state lock."""
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return wrapper
 
 
 class RotationState(Enum):
@@ -51,6 +63,11 @@ class RotationEngine:
 
         self._timer_thread: threading.Thread | None = None
         self._stop_event = threading.Event()
+
+        # Serializes state transitions across the timer thread, the keyboard
+        # hook thread, and the detection thread. RLock because internal paths
+        # re-enter (e.g. _begin_player_window -> stop on exhaustion).
+        self._lock = threading.RLock()
 
         # Phase-1 (player window) state
         self._player_window_start: float = 0
@@ -82,6 +99,7 @@ class RotationEngine:
         self.players = list(players)
         self.index = 0
 
+    @_locked
     def start(self):
         if not self.players:
             logger.warning("[Engine] No players loaded.")
@@ -95,12 +113,14 @@ class RotationEngine:
         self._begin_player_window()
         self._start_timer_thread()
 
+    @_locked
     def stop(self):
         self._stop_event.set()
         self._set_state(RotationState.IDLE)
         self.index = 0
         logger.info("[Engine] Rotation stopped.")
 
+    @_locked
     def pause(self):
         if not self.is_running:
             return
@@ -116,6 +136,7 @@ class RotationEngine:
         self._set_state(RotationState.PAUSED)
         logger.info("[Engine] Paused.")
 
+    @_locked
     def resume(self, dark_detected: bool = False, is_splendid: bool = False):
         if self.state != RotationState.PAUSED:
             return
@@ -134,6 +155,7 @@ class RotationEngine:
             self._start_timer_thread()
         logger.info("[Engine] Resumed.")
 
+    @_locked
     def reset(self):
         """Reset rotation to player 1, clearing all counts. Returns to armed/idle state."""
         if self.state not in (
@@ -151,6 +173,7 @@ class RotationEngine:
         self.on_event(EngineEvent.RESET, {})
         logger.info("[Engine] Rotation reset to player 1.")
 
+    @_locked
     def on_dark_detected(self, player: str, is_splendid: bool):
         """Called when a dark grenade throw is confirmed (via hotkey or detection)."""
         if self.state != RotationState.RUNNING_PLAYER_WINDOW:
@@ -184,6 +207,7 @@ class RotationEngine:
         self._dark_warned = False
         self._set_state(RotationState.RUNNING_DARK_WINDOW)
 
+    @_locked
     def on_dark_missed(self):
         """Called by F10 — counts the miss against the current player's throw
         limit, then immediately advances to the next player (no dark countdown)."""
@@ -223,6 +247,7 @@ class RotationEngine:
                 self._tick()
             time.sleep(0.25)
 
+    @_locked
     def _tick(self):
         if self.state == RotationState.RUNNING_DARK_WINDOW:
             # ── Phase 2: dark buff is running ──────────────────────────

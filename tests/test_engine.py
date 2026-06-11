@@ -64,6 +64,57 @@ def events_of(events, etype):
 
 
 # ----------------------------------------------------------------------
+# Thread-safety: confirm racing the auto-miss at the deadline
+# ----------------------------------------------------------------------
+
+def test_confirm_cannot_interleave_into_auto_miss(make_engine):
+    """A hotkey confirm landing exactly at the miss deadline must serialize
+    with the timer tick: pre-lock, the confirm ran mid-miss and the tick then
+    destroyed the dark window with a second advance."""
+    import threading as _threading
+
+    eng, clock, events = make_engine(players=["A", "B", "C"])
+    eng.start()
+    clock.advance(20)  # exactly at the miss deadline
+
+    tick_in_miss = _threading.Event()
+    release_tick = _threading.Event()
+    orig_on_event = eng.on_event
+
+    def gated(etype, data):
+        orig_on_event(etype, data)
+        if etype is EngineEvent.MISSED:
+            tick_in_miss.set()
+            release_tick.wait(timeout=5)
+
+    eng.on_event = gated
+
+    t_tick = _threading.Thread(target=eng._tick)
+    t_confirm = _threading.Thread(target=lambda: eng.on_dark_detected("A", False))
+    try:
+        t_tick.start()
+        assert tick_in_miss.wait(timeout=5), "tick never reached the miss path"
+
+        t_confirm.start()
+        t_confirm.join(timeout=0.3)
+        # While the tick is mid-miss the confirm must be blocked: no
+        # CONFIRMED event may exist yet.
+        assert events_of(events, EngineEvent.CONFIRMED) == []
+    finally:
+        release_tick.set()
+        t_tick.join(timeout=5)
+        t_confirm.join(timeout=5)
+    assert not t_tick.is_alive() and not t_confirm.is_alive()
+
+    # Serialized outcome: the miss completed first, then the confirm started
+    # the dark window — which must survive (pre-lock it was overwritten by a
+    # second _begin_player_window, double-advancing the rotation).
+    assert eng.state is RotationState.RUNNING_DARK_WINDOW
+    assert len(events_of(events, EngineEvent.MISSED)) == 1
+    assert len(events_of(events, EngineEvent.CONFIRMED)) == 1
+
+
+# ----------------------------------------------------------------------
 # Construction / start guards
 # ----------------------------------------------------------------------
 
