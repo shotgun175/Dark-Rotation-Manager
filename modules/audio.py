@@ -1,5 +1,5 @@
 """
-audio.py - Audio manager for Dark Rotation Bot
+audio.py - Audio manager for Dark Rotation Manager
 
 Handles two types of audio:
   1. TTS voice lines via edge-tts (pre-rendered at bot launch, played instantly)
@@ -56,7 +56,7 @@ class AudioManager:
     def __init__(self, config: dict):
         self._config     = config
         self._cache: dict[str, str] = {}          # key -> mp3 path
-        self._temp_dir   = tempfile.mkdtemp(prefix="darkbot_tts_")
+        self._temp_dir   = tempfile.mkdtemp(prefix="drm_tts_")
         self._ready      = False
         self._volume     = float(config.get("audio", {}).get("volume", 0.8))
         self._render_thread: threading.Thread | None = None

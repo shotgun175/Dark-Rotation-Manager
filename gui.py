@@ -13,7 +13,7 @@ from modules.log_setup import setup_logging
 
 # Initialize file logging before importing modules that emit logs at import
 # time (e.g. audio.py's module-level pygame init), so nothing is lost.
-LOG_PATH = setup_logging()
+setup_logging()
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon

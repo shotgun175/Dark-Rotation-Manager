@@ -222,7 +222,6 @@ class ConfigApp(QMainWindow):
 
     @staticmethod
     def _qt_key_to_name(qt_key: int) -> str:
-        from PyQt5.QtCore import Qt
         mapping = {
             Qt.Key_F1: "f1",   Qt.Key_F2:  "f2",  Qt.Key_F3:  "f3",  Qt.Key_F4:  "f4",
             Qt.Key_F5: "f5",   Qt.Key_F6:  "f6",  Qt.Key_F7:  "f7",  Qt.Key_F8:  "f8",
