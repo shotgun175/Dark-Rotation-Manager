@@ -24,6 +24,17 @@ from modules.events import EngineEvent
 
 logger = logging.getLogger(__name__)
 
+# Lost Ark game data: the Dark Grenade buff lasts 20 s, the Splendid Dark
+# Grenade variant 25 s, and a player's grenade is back up after ~30 s
+# (in-game item behavior; re-verify after balance patches).
+DARK_BUFF_SECONDS     = 20
+SPLENDID_BUFF_SECONDS = 25
+DEFAULT_DARK_COOLDOWN_SECONDS = 30.0
+
+
+def _buff_duration(is_splendid: bool) -> int:
+    return SPLENDID_BUFF_SECONDS if is_splendid else DARK_BUFF_SECONDS
+
 
 def _locked(method):
     """Run an engine mutator while holding the engine's state lock."""
@@ -50,7 +61,9 @@ class RotationEngine:
         self.rot_config = config.get("rotation", {})
         self.warn_secs = self.rot_config.get("warning_seconds", 5)
         self.miss_secs = float(self.rot_config.get("miss_seconds", 20))   # seconds before auto-miss fires
-        self.cooldown_secs: float = self.rot_config.get("dark_cooldown_seconds", 30.0)
+        self.cooldown_secs: float = self.rot_config.get(
+            "dark_cooldown_seconds", DEFAULT_DARK_COOLDOWN_SECONDS
+        )
 
         self.max_throws: int = self.rot_config.get("max_throws_per_run", 3)
 
@@ -76,13 +89,13 @@ class RotationEngine:
 
         # Phase-2 (dark window) state
         self._dark_start: float = 0
-        self._dark_duration: int = 20
+        self._dark_duration: int = DARK_BUFF_SECONDS
         self._dark_warned: bool = False   # warning callout during dark countdown
         self._dark_player: str = ""       # who threw the dark (shown on overlay during buff)
 
         # Pause state — frozen display values
         self._paused_remaining: float = 0.0
-        self._paused_duration: float = 20.0
+        self._paused_duration: float = float(DARK_BUFF_SECONDS)
 
     # ------------------------------------------------------------------
     # Public API
@@ -143,7 +156,7 @@ class RotationEngine:
         if dark_detected:
             # Dark is still active in-game — restart its countdown from now
             self._dark_start = time.time()
-            self._dark_duration = 25 if is_splendid else 20
+            self._dark_duration = _buff_duration(is_splendid)
             self._dark_warned = False
             self._set_state(RotationState.RUNNING_DARK_WINDOW)
         else:
@@ -179,7 +192,7 @@ class RotationEngine:
         if self.state != RotationState.RUNNING_PLAYER_WINDOW:
             return
 
-        duration = 25 if is_splendid else 20
+        duration = _buff_duration(is_splendid)
         kind = "Splendid Dark" if is_splendid else "Dark"
         self.on_event(EngineEvent.CONFIRMED, {"player": player, "kind": kind, "duration": duration})
 

@@ -24,6 +24,19 @@ logger = logging.getLogger(__name__)
 DARK_TEMPLATE_PATH      = get_resource(os.path.join("assets", "templates", "dark_grenade.png"))
 SPLENDID_TEMPLATE_PATH  = get_resource(os.path.join("assets", "templates", "splendid_dark_grenade.png"))
 
+# Detection-region defaults: where the boss debuff bar sits relative to the
+# Lost Ark window's client top-left. Calibrated against a 2560x1440 display
+# (the reference frame the GUI's region preview also draws against); other
+# resolutions/UI scales should redraw the region in the Overlay tab.
+# Single source of truth — overlay_tab and config.example.yaml mirror these.
+DEFAULT_REGION_REL_X  = 875
+DEFAULT_REGION_REL_Y  = 325
+DEFAULT_REGION_WIDTH  = 456
+DEFAULT_REGION_HEIGHT = 46
+DEFAULT_THRESHOLD     = 0.75   # OpenCV template-match confidence
+CALIBRATION_WIDTH     = 2560
+CALIBRATION_HEIGHT    = 1440
+
 
 class DetectionEngine:
     def __init__(self, config: dict, on_detected):
@@ -50,11 +63,11 @@ class DetectionEngine:
 
     def _load_config(self):
         det = self._config.get("detection", {})
-        self.rel_x          = det.get("rel_x", 875)
-        self.rel_y          = det.get("rel_y", 325)
-        self.width          = det.get("width", 456)
-        self.height         = det.get("height", 46)
-        self.threshold      = det.get("threshold", 0.75)
+        self.rel_x          = det.get("rel_x", DEFAULT_REGION_REL_X)
+        self.rel_y          = det.get("rel_y", DEFAULT_REGION_REL_Y)
+        self.width          = det.get("width", DEFAULT_REGION_WIDTH)
+        self.height         = det.get("height", DEFAULT_REGION_HEIGHT)
+        self.threshold      = det.get("threshold", DEFAULT_THRESHOLD)
         self.scan_interval  = det.get("scan_interval_ms", 500) / 1000.0
 
     def _load_template(self, path: str):

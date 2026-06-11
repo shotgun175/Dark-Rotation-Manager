@@ -12,15 +12,22 @@ from modules.styles import (
     BUTTON_GHOST, CARD_DARK, CHECKBOX_GOLD,
     INPUT_DARK, LABEL_DIM, LABEL_HINT, LABEL_SECTION, SLIDER_GOLD,
 )
+from modules.detection import (
+    CALIBRATION_HEIGHT, CALIBRATION_WIDTH,
+    DEFAULT_REGION_HEIGHT, DEFAULT_REGION_REL_X,
+    DEFAULT_REGION_REL_Y, DEFAULT_REGION_WIDTH,
+)
 
 
 class RegionPreviewWidget(QFrame):
     """Mini screen diagram showing the detection region as a yellow rectangle."""
 
-    _REF_W = 2560
-    _REF_H = 1440
+    # Same reference frame the region defaults were calibrated against.
+    _REF_W = CALIBRATION_WIDTH
+    _REF_H = CALIBRATION_HEIGHT
 
-    def __init__(self, rel_x=875, rel_y=325, w=456, h=46, parent=None):
+    def __init__(self, rel_x=DEFAULT_REGION_REL_X, rel_y=DEFAULT_REGION_REL_Y,
+                 w=DEFAULT_REGION_WIDTH, h=DEFAULT_REGION_HEIGHT, parent=None):
         super().__init__(parent)
         self.setFixedSize(200, 113)   # 16:9 compact
         self.setStyleSheet("background: #0a0a0a; border: 1px solid #333;")
@@ -70,14 +77,16 @@ class OverlayTab(QWidget):
             opacity_pct=int(round(ov.get("opacity", 0.88) * 100)),
             font_size=ov.get("font_size", 16),
             detection_enabled=det.get("enabled", True),
-            det_rel_x=det.get("rel_x", 875),
-            det_rel_y=det.get("rel_y", 325),
-            det_w=det.get("width", 456),
-            det_h=det.get("height", 46),
+            det_rel_x=det.get("rel_x", DEFAULT_REGION_REL_X),
+            det_rel_y=det.get("rel_y", DEFAULT_REGION_REL_Y),
+            det_w=det.get("width", DEFAULT_REGION_WIDTH),
+            det_h=det.get("height", DEFAULT_REGION_HEIGHT),
         )
 
     def _build_ui(self, x, y, width, height, opacity_pct, font_size,
-                  detection_enabled=True, det_rel_x=875, det_rel_y=325, det_w=456, det_h=46):
+                  detection_enabled=True,
+                  det_rel_x=DEFAULT_REGION_REL_X, det_rel_y=DEFAULT_REGION_REL_Y,
+                  det_w=DEFAULT_REGION_WIDTH, det_h=DEFAULT_REGION_HEIGHT):
 
         # Single scrollable column — no competing right panel
         scroll = QScrollArea()
