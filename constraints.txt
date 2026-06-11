@@ -1,0 +1,39 @@
+# Release-build pin set (pip constraints file).
+# Snapshot of a clean `pip install -r requirements.txt pyinstaller` resolve,
+# taken 2026-06-11 on Windows. Used by release.yml so rebuilding any tag
+# resolves the same dependency versions instead of whatever is newest.
+# Refresh deliberately: recreate a clean venv, install, `pip freeze` here.
+aiohappyeyeballs==2.6.2
+aiohttp==3.14.1
+aiosignal==1.4.0
+altgraph==0.17.5
+attrs==26.1.0
+certifi==2026.5.20
+colorama==0.4.6
+edge-tts==7.2.8
+frozenlist==1.8.0
+idna==3.18
+iniconfig==2.3.0
+keyboard==0.13.5
+mss==10.2.0
+multidict==6.7.1
+numpy==2.4.6
+opencv-python==4.13.0.92
+packaging==26.2
+pefile==2024.8.26
+pluggy==1.6.0
+propcache==0.5.2
+pygame==2.6.1
+Pygments==2.20.0
+pyinstaller==6.20.0
+pyinstaller-hooks-contrib==2026.6
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.2
+PyQt5_sip==12.18.0
+pytest==9.0.3
+pywin32==312
+pywin32-ctypes==0.2.3
+PyYAML==6.0.1
+tabulate==0.10.0
+typing_extensions==4.15.0
+yarl==1.24.2

@@ -21,15 +21,34 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt pyinstaller
+        # Constraints pin the full transitive set so rebuilding an old tag
+        # resolves the same versions (see constraints.txt header).
+        run: pip install -r requirements.txt pyinstaller -c constraints.txt
+
+      - name: Verify tag matches modules/version.py
+        shell: pwsh
+        run: |
+          python -c "import os, sys; from modules.version import __version__; tag = os.environ['GITHUB_REF_NAME'].lstrip('v'); sys.exit(0) if tag == __version__ else sys.exit(f'Tag v{tag} does not match modules/version.py __version__={__version__} - bump version.py or retag.')"
+
+      - name: Run tests
+        run: pytest -q
 
       - name: Build exe
         run: pyinstaller --clean "Dark Rotation Manager.spec"
 
+      - name: Generate SHA-256 checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash 'dist/Dark Rotation Manager.exe' -Algorithm SHA256).Hash.ToLower()
+          "$hash  Dark Rotation Manager.exe" | Out-File -Encoding ascii 'dist/Dark Rotation Manager.exe.sha256'
+          Get-Content 'dist/Dark Rotation Manager.exe.sha256'
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          files: dist/Dark Rotation Manager.exe
+          files: |
+            dist/Dark Rotation Manager.exe
+            dist/Dark Rotation Manager.exe.sha256
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
