@@ -74,12 +74,13 @@ class ConfigApp(QMainWindow):
     # ------------------------------------------------------------------
 
     def _load_config(self) -> dict:
-        with open(self._config_path) as f:
-            return yaml.safe_load(f)
+        with open(self._config_path, encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
 
     def _save_config(self):
         atomic_write_text(
-            self._config_path, yaml.dump(self._config, default_flow_style=False)
+            self._config_path,
+            yaml.dump(self._config, default_flow_style=False, allow_unicode=True),
         )
 
     # ------------------------------------------------------------------

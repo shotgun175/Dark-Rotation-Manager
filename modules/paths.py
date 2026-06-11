@@ -102,7 +102,7 @@ def ensure_user_files(base_dir: str) -> None:
     # Determine active roster from the (possibly newly-copied) config
     try:
         import yaml
-        with open(config) as f:
+        with open(config, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
         active = data.get("rotation", {}).get("active_roster", "example.yaml")
     except Exception:
