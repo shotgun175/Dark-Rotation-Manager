@@ -46,6 +46,7 @@ class ConfigApp(QMainWindow):
         self._controller = BotController(self._on_engine_event)
         self._router = EventRouter(self._controller)
         self._preview_overlay = None
+        self._test_audio = None  # reused by Test Voice when the bot is stopped
 
         self.setWindowTitle("Dark Rotation Manager")
         gui_pos = self._config.get("gui", {}).get("position", {})
@@ -340,8 +341,13 @@ class ConfigApp(QMainWindow):
             self._controller.audio.update_config(test_config)
             self._controller.audio.play_test()
         else:
-            tmp = AudioManager(test_config)
-            tmp.play_test()
+            # Reuse one manager across clicks; a fresh one per click leaked
+            # its temp dir (never shutdown()).
+            if self._test_audio is None:
+                self._test_audio = AudioManager(test_config)
+            else:
+                self._test_audio.update_config(test_config)
+            self._test_audio.play_test()
 
     # ------------------------------------------------------------------
     # Detection region selector
@@ -416,6 +422,8 @@ class ConfigApp(QMainWindow):
     def closeEvent(self, event):
         if self._controller.is_running:
             self._stop_bot()
+        if self._test_audio:
+            self._test_audio.shutdown()
         if self._preview_overlay:
             self._preview_overlay.close()
         p = self.pos()

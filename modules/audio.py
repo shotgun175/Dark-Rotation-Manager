@@ -140,14 +140,20 @@ class AudioManager:
         if path and os.path.exists(path):
             self._play_tts(path)
         else:
-            # Render on the fly for test
+            # Render on the fly for test — on a background thread (mirroring
+            # prerender), since the edge-tts render is a network call and
+            # play_test is invoked from the Qt main thread.
             voice_id = VOICE_MAP.get(voice, VOICE_MAP["Andrew"])
             out = os.path.join(self._temp_dir, f"test_{voice}.mp3")
-            try:
-                asyncio.run(self._async_render("Dark confirmed", voice_id, out))
-                self._play_tts(out)
-            except Exception as e:
-                logger.exception(f"[Audio] Test render failed: {e}")
+
+            def _render_and_play():
+                try:
+                    asyncio.run(self._async_render("Dark confirmed", voice_id, out))
+                    self._play_tts(out)
+                except Exception as e:
+                    logger.exception(f"[Audio] Test render failed: {e}")
+
+            threading.Thread(target=_render_and_play, daemon=True).start()
 
     def set_volume(self, volume: float):
         self._volume = max(0.0, min(1.0, volume))
