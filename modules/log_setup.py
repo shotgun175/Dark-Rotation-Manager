@@ -11,6 +11,8 @@ gui.py). It is idempotent — repeat calls are no-ops.
 
 import logging
 import os
+import sys
+import threading
 from logging.handlers import RotatingFileHandler
 
 from modules.paths import get_base_dir
@@ -48,5 +50,51 @@ def setup_logging() -> str:
     root.addHandler(handler)
 
     _configured = True
+    install_excepthooks(log_path)
     logging.getLogger(__name__).info("Logging initialized -> %s", log_path)
     return log_path
+
+
+def install_excepthooks(log_path: str) -> None:
+    """Route unhandled exceptions (main and worker threads) into the log.
+
+    The exe is built with console=False, so without these hooks any unhandled
+    exception kills the app with nothing written anywhere.
+    """
+
+    def _hook(exc_type, exc_value, exc_tb):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_tb)
+            return
+        logging.getLogger(__name__).critical(
+            "Unhandled exception", exc_info=(exc_type, exc_value, exc_tb)
+        )
+        _show_crash_dialog(log_path)
+        sys.__excepthook__(exc_type, exc_value, exc_tb)
+
+    def _thread_hook(args):
+        thread_name = args.thread.name if args.thread else "<unknown>"
+        logging.getLogger(__name__).critical(
+            "Unhandled exception in thread %s",
+            thread_name,
+            exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+        )
+
+    sys.excepthook = _hook
+    threading.excepthook = _thread_hook
+
+
+def _show_crash_dialog(log_path: str) -> None:
+    """Point the user at the log file, but only if Qt is already running."""
+    try:
+        from PyQt5.QtWidgets import QApplication, QMessageBox
+
+        if QApplication.instance() is None:
+            return
+        QMessageBox.critical(
+            None,
+            "Dark Rotation Manager",
+            "An unexpected error occurred.\nDetails were written to:\n" + log_path,
+        )
+    except Exception:
+        pass  # never let the crash reporter crash the crash path
