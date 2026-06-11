@@ -223,6 +223,16 @@ MIT
 
 ## Changelog
 
+### v1.2.3 - Reliability and audit fixes
+- **New: crash reporting.** Unhandled errors are now written to the `logs/` folder (with a dialog pointing at the log) instead of silently killing the app — previously the no-console exe died with no trace
+- **Fix:** hand-edited rosters/configs with accented player names no longer break on load (files are read as UTF-8); an empty `config.yaml` or roster file no longer crashes startup
+- **Fix:** rebinding a hotkey no longer leaves the new key registered after Stop (which made F8 double-fire after the next Launch)
+- **Fix:** rotation state changes are now thread-safe — a confirm landing exactly at the auto-miss deadline can no longer double-advance the rotation
+- **Fix:** the Test Voice button no longer freezes the window while rendering an uncached clip, and no longer leaves temp folders behind
+- **Improved:** clicking Apply while the bot is running now tells you in the status bar when a detection/audio toggle needs a bot restart to take effect
+- **Releases:** every release build now runs the test suite first, verifies the tag matches the app version, installs pinned dependency versions for reproducible builds, and publishes a SHA-256 checksum next to the exe
+- **Docs:** README build instructions now use the `.spec` file (the raw command produced a broken exe); config reference synced with the shipped example; MIT LICENSE file added
+
 ### v1.2.2 - Clickable update banner
 - **Improved:** the "Update available" notice in the bottom bar is now a clickable link — clicking it opens that release's GitHub page (where the `.exe` download lives) in your browser, instead of only telling you an update exists
 
