@@ -183,19 +183,8 @@ class RotationEngine:
         kind = "Splendid Dark" if is_splendid else "Dark"
         self.on_event(EngineEvent.CONFIRMED, {"player": player, "kind": kind, "duration": duration})
 
-        # Record throw time and increment run count
-        key = player.lower()
-        self._throw_times[key] = time.time()
-        self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
-        count = self._throw_counts[key]
+        count = self._record_throw(player)
         logger.info(f"[Engine] {player} throw {count}/{self.max_throws}")
-
-        # Mark exhausted when they hit the per-run cap
-        if count >= self.max_throws:
-            for p in self.players:
-                if p.lower() == key:
-                    self._exhausted.add(p)
-                    break
 
         # A dark is now active regardless of who threw it.
         # Advance past the current expected slot and start the buff countdown.
@@ -215,23 +204,28 @@ class RotationEngine:
             return
 
         player = self._current_player()
-        key = player.lower()
-
-        self._throw_times[key] = time.time()
-        self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
-        count = self._throw_counts[key]
+        count = self._record_throw(player)
         logger.info(f"[Engine] {player} MISSED — throw {count}/{self.max_throws}")
 
         self.on_event(EngineEvent.MISSED, {"player": player})
 
+        self._advance()
+        self._begin_player_window()
+
+    def _record_throw(self, player: str) -> int:
+        """Record a throw (confirmed or missed): stamp the cooldown time, bump
+        the per-run count, and mark the player exhausted at the cap. Returns
+        the new count. Shared by the confirm and miss paths."""
+        key = player.lower()
+        self._throw_times[key] = time.time()
+        self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
+        count = self._throw_counts[key]
         if count >= self.max_throws:
             for p in self.players:
                 if p.lower() == key:
                     self._exhausted.add(p)
                     break
-
-        self._advance()
-        self._begin_player_window()
+        return count
 
     # ------------------------------------------------------------------
     # Timing internals
