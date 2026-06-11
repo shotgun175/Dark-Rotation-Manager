@@ -7,4 +7,3 @@ mss>=9.0
 pygame>=2.5
 edge-tts>=6.1
 pytest>=7.0
-pytest-qt>=4.0
