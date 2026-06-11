@@ -47,6 +47,7 @@ class ConfigApp(QMainWindow):
         self._router = EventRouter(self._controller)
         self._preview_overlay = None
         self._test_audio = None  # reused by Test Voice when the bot is stopped
+        self._restart_notice = ""  # sticky Apply notice; respected by the poller
 
         self.setWindowTitle("Dark Rotation Manager")
         gui_pos = self._config.get("gui", {}).get("position", {})
@@ -264,10 +265,14 @@ class ConfigApp(QMainWindow):
         if self._controller.is_running:
             needs_restart = self._controller.apply(self._config, players)
             if needs_restart:
-                self._set_status_text(
-                    "Saved — restart the bot to apply: " + ", ".join(needs_restart),
-                    "#ffaa00",
+                # Sticky: _refresh_status_bar would otherwise overwrite this
+                # within 300 ms with the "Running — <player>" text.
+                self._restart_notice = (
+                    "Saved — restart the bot to apply: " + ", ".join(needs_restart)
                 )
+                self._set_status_text(self._restart_notice, "#ffaa00")
+            else:
+                self._restart_notice = ""
 
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")
@@ -307,6 +312,7 @@ class ConfigApp(QMainWindow):
 
     def _stop_bot(self):
         self._controller.stop()
+        self._restart_notice = ""
         self._launch_btn.setText("▶  Launch")
         self._launch_btn.setStyleSheet(BUTTON_LAUNCH_GREEN)
         self._set_status_text("Bot not running", "#999")
@@ -414,6 +420,8 @@ class ConfigApp(QMainWindow):
     def _refresh_status_bar(self):
         if not self._controller.is_running or not self._controller.engine:
             return
+        if self._restart_notice:
+            return  # keep the Apply restart notice readable
         status = self._controller.engine.get_status()
         current = status.get("current_player", "")
         if current and current != "Nobody":

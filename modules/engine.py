@@ -108,6 +108,7 @@ class RotationEngine:
             RotationState.RUNNING_DARK_WINDOW,
         )
 
+    @_locked
     def set_players(self, players: list[str]):
         self.players = list(players)
         self.index = 0
