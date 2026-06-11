@@ -1,5 +1,7 @@
 # Dark Rotation Manager
 
+Part of [Lost Ark Tools](https://shotgun175.github.io/).
+
 Tracks and announces the Lost Ark dark grenade rotation with an always-on-top
 overlay and configurable hotkeys. Confirms throws manually via hotkey.
 
@@ -36,7 +38,7 @@ overlay and configurable hotkeys. Confirms throws manually via hotkey.
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Dark-Rotation-Manager.git
+git clone https://github.com/shotgun175/Dark-Rotation-Manager.git
 cd Dark-Rotation-Manager
 ```
 
@@ -62,7 +64,7 @@ then **▶ Launch** to arm the bot (overlay appears, audio pre-renders), then pr
 | Key | Action |
 |-----|--------|
 | F8  | Start → Pause → Resume rotation |
-| F9  | Confirm dark thrown (starts 20–25 s buff countdown) |
+| F9  | Confirm dark thrown (starts the 20 s buff countdown; the 25 s splendid timer only comes from auto-detection) |
 | F10 | Dark missed (counts toward throw limit, advances to next player) |
 | F11 | Reset rotation to player 1 (armed but not started) |
 
@@ -126,9 +128,10 @@ setup, verified against the current code.
   behaviour has not been verified.
 - **Multiple game windows.** If more than one visible window matches `LOST ARK`,
   the first one Windows enumerates is used — multi-client setups are unhandled.
-- **Reference resolution.** The exact resolution / UI scale that the default region
-  and templates were captured at isn't recorded; treat the defaults as a starting
-  point and redraw the region for your own setup.
+- **Reference resolution.** The default region (and the GUI's region preview)
+  use a 2560×1440 reference frame (`CALIBRATION_WIDTH/HEIGHT` in
+  `modules/detection.py`). On other resolutions or UI scales, treat the
+  defaults as a starting point and redraw the region for your own setup.
 
 ### Scope (out)
 
@@ -147,25 +150,41 @@ setup, verified against the current code.
 
 ## Config reference
 
+The complete, shipped defaults live in
+[`config.example.yaml`](config.example.yaml) — first run copies it to
+`config.yaml`. The non-obvious keys:
+
 ```yaml
 rotation:
   warning_seconds: 5            # warning callout N seconds before next window
+  miss_seconds: 20              # seconds a player has to throw before auto-miss
   dark_cooldown_seconds: 30     # skip players whose grenade is still on cooldown
   max_throws_per_run: 3         # per-player throw cap; rotation ends when all reach it
   active_roster: example.yaml
 
-hotkeys:
-  start_stop: f8
-  confirm: f9
-  missed: f10
-  reset: f11
+detection:
+  enabled: true                 # OpenCV auto-detect of the dark debuff icon
+  rel_x: 875                    # scan region, relative to the game window's
+  rel_y: 325                    #   client top-left (drawable in the Overlay tab)
+  width: 456
+  height: 46
+  threshold: 0.75               # template-match confidence (0-1)
+  scan_interval_ms: 500
+
+audio:
+  enabled: true
+  voice: Andrew                 # Andrew or Jenny (Edge neural voices)
+  volume: 0.8
+  cues: {...}                   # per-cue toggles, see config.example.yaml
 
 overlay:
-  position: {x: 0, y: 0}       # auto-saved when you drag the overlay
+  position: {x: 100, y: 100}   # auto-saved when you drag the overlay
   width: 320
   height: 230
-  opacity: 0.88
+  opacity: 1.0
   font_size: 16
+
+hotkeys: {start_stop: f8, confirm: f9, missed: f10, reset: f11}
 
 gui:
   position: {x: 100, y: 100}   # auto-saved when you move the GUI window
@@ -179,11 +198,13 @@ To create a double-clickable executable (no terminal, no Python required):
 
 ```bash
 pip install pyinstaller
-pyinstaller --noconsole --onefile --icon=assets/icon.ico --name="Dark Rotation Manager" --clean --hidden-import=edge_tts --hidden-import=aiohttp gui.py
+pyinstaller --clean "Dark Rotation Manager.spec"
 ```
 
 Output: `dist/Dark Rotation Manager.exe` — run it directly from the `dist/` folder. Re-run this command any time you update the code.
-`config.yaml`, `rosters/`, and `assets/` are read from the project root automatically.
+Always build from the `.spec` file (it bundles the example config, default
+roster, detection templates, icon, and chime into the exe) — a raw
+`pyinstaller gui.py` build ships without them and breaks on first run.
 
 ---
 
