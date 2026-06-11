@@ -59,9 +59,12 @@ class HotkeyManager:
                 keyboard.remove_hotkey(old_key)
             except Exception:
                 pass
+            if old_key in self._registered:
+                self._registered.remove(old_key)
 
         fn = self.callbacks.get(action)
         if fn:
             keyboard.add_hotkey(new_key, fn, suppress=False)
+            self._registered.append(new_key)
             self.config[action] = new_key
             logger.info(f"[Hotkeys] {action} rebound to {new_key.upper()}")
