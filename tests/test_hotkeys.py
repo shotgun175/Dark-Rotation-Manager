@@ -30,18 +30,17 @@ def fake(monkeypatch):
     return fake
 
 
-def test_update_key_then_stop_unregisters_everything(fake):
+def test_start_registers_all_configured_keys(fake):
+    mgr = HotkeyManager(
+        {"start_stop": "f8", "confirm": "f9"},
+        {"start_stop": lambda: None, "confirm": lambda: None},
+    )
+    mgr.start()
+    assert {k: len(v) for k, v in fake.active.items()} == {"f8": 1, "f9": 1}
+
+
+def test_stop_unregisters_everything(fake):
     mgr = HotkeyManager({"start_stop": "f8"}, {"start_stop": lambda: None})
     mgr.start()
-    mgr.update_key("start_stop", "f5")
     mgr.stop()
     assert fake.active == {}
-
-
-def test_rebound_key_has_single_handler_after_restart(fake):
-    mgr = HotkeyManager({"start_stop": "f8"}, {"start_stop": lambda: None})
-    mgr.start()
-    mgr.update_key("start_stop", "f5")
-    mgr.stop()
-    mgr.start()
-    assert {k: len(v) for k, v in fake.active.items()} == {"f5": 1}

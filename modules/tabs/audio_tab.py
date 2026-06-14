@@ -12,7 +12,6 @@ from modules.styles import CARD_DARK, CHECKBOX_CUE_GOLD, CHECKBOX_GOLD, RADIO_GO
 
 class AudioTab(QWidget):
     test_requested  = pyqtSignal()
-    volume_changed  = pyqtSignal(float)
 
     def __init__(self, config: dict):
         super().__init__()
@@ -162,7 +161,6 @@ class AudioTab(QWidget):
 
     def _on_volume_changed(self, v: int):
         self._volume_label.setText(f"VOLUME  {v}%")
-        self.volume_changed.emit(v / 100.0)
 
     def _section_label(self, text: str) -> QLabel:
         lbl = QLabel(text)

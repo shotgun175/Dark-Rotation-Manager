@@ -163,9 +163,6 @@ class AudioManager:
             self._test_thread = threading.Thread(target=_render_and_play, daemon=True)
             self._test_thread.start()
 
-    def set_volume(self, volume: float):
-        self._volume = max(0.0, min(1.0, volume))
-
     def update_config(self, config: dict, players: list[str] | None = None):
         old_voice = self._config.get("audio", {}).get("voice", "Andrew")
         new_voice = config.get("audio", {}).get("voice", "Andrew")

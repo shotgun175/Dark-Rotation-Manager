@@ -47,7 +47,6 @@ class ConfigApp(QMainWindow):
         self._router = EventRouter(self._controller)
         self._preview_overlay = None
         self._test_audio = None  # reused by Test Voice when the bot is stopped
-        self._restart_notice = ""  # sticky Apply notice; respected by the poller
 
         self.setWindowTitle("Dark Rotation Manager")
         gui_pos = self._config.get("gui", {}).get("position", {})
@@ -66,10 +65,6 @@ class ConfigApp(QMainWindow):
         # Non-blocking "update available" check (daemon thread -> signal).
         self._update_available_signal.connect(self._show_update_available)
         check_for_update_async(self._update_available_signal.emit)
-
-        self._status_timer = QTimer(self)
-        self._status_timer.timeout.connect(self._refresh_status_bar)
-        self._status_timer.start(300)
 
     # ------------------------------------------------------------------
     # Config I/O
@@ -129,7 +124,6 @@ class ConfigApp(QMainWindow):
 
         self._audio_tab = AudioTab(self._config)
         self._audio_tab.test_requested.connect(self._handle_audio_test)
-        self._audio_tab.volume_changed.connect(self._handle_volume_changed)
 
         self._tabs.addTab(self._roster_tab,   "Roster")
         self._tabs.addTab(self._rotation_tab, "Rotation")
@@ -262,18 +256,6 @@ class ConfigApp(QMainWindow):
             players,
         )
 
-        if self._controller.is_running:
-            needs_restart = self._controller.apply(self._config, players)
-            if needs_restart:
-                # Sticky: _refresh_status_bar would otherwise overwrite this
-                # within 300 ms with the "Running — <player>" text.
-                self._restart_notice = (
-                    "Saved — restart the bot to apply: " + ", ".join(needs_restart)
-                )
-                self._set_status_text(self._restart_notice, "#ffaa00")
-            else:
-                self._restart_notice = ""
-
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")
         QTimer.singleShot(1200, self._restore_apply_btn)
@@ -312,7 +294,6 @@ class ConfigApp(QMainWindow):
 
     def _stop_bot(self):
         self._controller.stop()
-        self._restart_notice = ""
         self._launch_btn.setText("▶  Launch")
         self._launch_btn.setStyleSheet(BUTTON_LAUNCH_GREEN)
         self._set_status_text("Bot not running", "#999")
@@ -339,25 +320,18 @@ class ConfigApp(QMainWindow):
     # Audio tab callbacks
     # ------------------------------------------------------------------
 
-    def _handle_volume_changed(self, volume: float):
-        self._controller.set_audio_volume(volume)
-
     def _handle_audio_test(self):
         """Play a sample TTS line for the currently selected voice."""
         from modules.audio import AudioManager
         test_config = dict(self._config)
         test_config["audio"] = self._audio_tab.get_values()
-        if self._controller.audio:
-            self._controller.audio.update_config(test_config)
-            self._controller.audio.play_test()
+        # Reuse one manager across clicks; a fresh one per click leaked
+        # its temp dir (never shutdown()).
+        if self._test_audio is None:
+            self._test_audio = AudioManager(test_config)
         else:
-            # Reuse one manager across clicks; a fresh one per click leaked
-            # its temp dir (never shutdown()).
-            if self._test_audio is None:
-                self._test_audio = AudioManager(test_config)
-            else:
-                self._test_audio.update_config(test_config)
-            self._test_audio.play_test()
+            self._test_audio.update_config(test_config)
+        self._test_audio.play_test()
 
     # ------------------------------------------------------------------
     # Detection region selector
@@ -390,11 +364,6 @@ class ConfigApp(QMainWindow):
     # ------------------------------------------------------------------
 
     def _handle_preview(self):
-        if self._controller.is_running and self._controller.overlay:
-            self._controller.overlay.show()
-            self._controller.overlay.raise_()
-            return
-
         if self._preview_overlay and self._preview_overlay.isVisible():
             self._preview_overlay.close()
             self._preview_overlay = None
@@ -412,20 +381,6 @@ class ConfigApp(QMainWindow):
         )
         self._preview_overlay.set_status_message("← Drag to position", "#88ccff")
         self._preview_overlay.show()
-
-    # ------------------------------------------------------------------
-    # Status bar refresh
-    # ------------------------------------------------------------------
-
-    def _refresh_status_bar(self):
-        if not self._controller.is_running or not self._controller.engine:
-            return
-        if self._restart_notice:
-            return  # keep the Apply restart notice readable
-        status = self._controller.engine.get_status()
-        current = status.get("current_player", "")
-        if current and current != "Nobody":
-            self._status_text.setText(f"Running — {current}")
 
     # ------------------------------------------------------------------
     # Window close
