@@ -46,6 +46,7 @@ class ConfigApp(QMainWindow):
         self._controller = BotController(self._on_engine_event)
         self._router = EventRouter(self._controller)
         self._preview_overlay = None
+        self._test_audio = None  # reused by Test Voice when the bot is stopped
 
         self.setWindowTitle("Dark Rotation Manager")
         gui_pos = self._config.get("gui", {}).get("position", {})
@@ -65,21 +66,18 @@ class ConfigApp(QMainWindow):
         self._update_available_signal.connect(self._show_update_available)
         check_for_update_async(self._update_available_signal.emit)
 
-        self._status_timer = QTimer(self)
-        self._status_timer.timeout.connect(self._refresh_status_bar)
-        self._status_timer.start(300)
-
     # ------------------------------------------------------------------
     # Config I/O
     # ------------------------------------------------------------------
 
     def _load_config(self) -> dict:
-        with open(self._config_path) as f:
-            return yaml.safe_load(f)
+        with open(self._config_path, encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
 
     def _save_config(self):
         atomic_write_text(
-            self._config_path, yaml.dump(self._config, default_flow_style=False)
+            self._config_path,
+            yaml.dump(self._config, default_flow_style=False, allow_unicode=True),
         )
 
     # ------------------------------------------------------------------
@@ -126,7 +124,6 @@ class ConfigApp(QMainWindow):
 
         self._audio_tab = AudioTab(self._config)
         self._audio_tab.test_requested.connect(self._handle_audio_test)
-        self._audio_tab.volume_changed.connect(self._handle_volume_changed)
 
         self._tabs.addTab(self._roster_tab,   "Roster")
         self._tabs.addTab(self._rotation_tab, "Rotation")
@@ -220,7 +217,6 @@ class ConfigApp(QMainWindow):
 
     @staticmethod
     def _qt_key_to_name(qt_key: int) -> str:
-        from PyQt5.QtCore import Qt
         mapping = {
             Qt.Key_F1: "f1",   Qt.Key_F2:  "f2",  Qt.Key_F3:  "f3",  Qt.Key_F4:  "f4",
             Qt.Key_F5: "f5",   Qt.Key_F6:  "f6",  Qt.Key_F7:  "f7",  Qt.Key_F8:  "f8",
@@ -259,9 +255,6 @@ class ConfigApp(QMainWindow):
             self._roster_mgr.current_roster_name or roster_file,
             players,
         )
-
-        if self._controller.is_running:
-            self._controller.apply(self._config, players)
 
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")
@@ -327,20 +320,18 @@ class ConfigApp(QMainWindow):
     # Audio tab callbacks
     # ------------------------------------------------------------------
 
-    def _handle_volume_changed(self, volume: float):
-        self._controller.set_audio_volume(volume)
-
     def _handle_audio_test(self):
         """Play a sample TTS line for the currently selected voice."""
         from modules.audio import AudioManager
         test_config = dict(self._config)
         test_config["audio"] = self._audio_tab.get_values()
-        if self._controller.audio:
-            self._controller.audio.update_config(test_config)
-            self._controller.audio.play_test()
+        # Reuse one manager across clicks; a fresh one per click leaked
+        # its temp dir (never shutdown()).
+        if self._test_audio is None:
+            self._test_audio = AudioManager(test_config)
         else:
-            tmp = AudioManager(test_config)
-            tmp.play_test()
+            self._test_audio.update_config(test_config)
+        self._test_audio.play_test()
 
     # ------------------------------------------------------------------
     # Detection region selector
@@ -373,11 +364,6 @@ class ConfigApp(QMainWindow):
     # ------------------------------------------------------------------
 
     def _handle_preview(self):
-        if self._controller.is_running and self._controller.overlay:
-            self._controller.overlay.show()
-            self._controller.overlay.raise_()
-            return
-
         if self._preview_overlay and self._preview_overlay.isVisible():
             self._preview_overlay.close()
             self._preview_overlay = None
@@ -397,24 +383,14 @@ class ConfigApp(QMainWindow):
         self._preview_overlay.show()
 
     # ------------------------------------------------------------------
-    # Status bar refresh
-    # ------------------------------------------------------------------
-
-    def _refresh_status_bar(self):
-        if not self._controller.is_running or not self._controller.engine:
-            return
-        status = self._controller.engine.get_status()
-        current = status.get("current_player", "")
-        if current and current != "Nobody":
-            self._status_text.setText(f"Running — {current}")
-
-    # ------------------------------------------------------------------
     # Window close
     # ------------------------------------------------------------------
 
     def closeEvent(self, event):
         if self._controller.is_running:
             self._stop_bot()
+        if self._test_audio:
+            self._test_audio.shutdown()
         if self._preview_overlay:
             self._preview_overlay.close()
         p = self.pos()

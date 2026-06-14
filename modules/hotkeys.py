@@ -50,18 +50,3 @@ class HotkeyManager:
                 pass
         self._registered.clear()
         logger.info("[Hotkeys] Unregistered.")
-
-    def update_key(self, action: str, new_key: str):
-        """Hot-swap a key binding without restarting."""
-        old_key = self.config.get(action)
-        if old_key:
-            try:
-                keyboard.remove_hotkey(old_key)
-            except Exception:
-                pass
-
-        fn = self.callbacks.get(action)
-        if fn:
-            keyboard.add_hotkey(new_key, fn, suppress=False)
-            self.config[action] = new_key
-            logger.info(f"[Hotkeys] {action} rebound to {new_key.upper()}")

@@ -57,3 +57,50 @@ def test_save_uses_block_style(tmp_path):
     # default_flow_style=False -> block sequence, not inline "[Alice, Bob]".
     assert "- Alice" in text
     assert "[" not in text
+
+
+def test_load_empty_file_returns_empty(tmp_path):
+    (tmp_path / "r.yaml").write_text("", encoding="utf-8")
+    mgr = RosterManager(str(tmp_path))
+    assert mgr.load("r.yaml") == []
+    assert mgr.current_roster_name == "r.yaml"
+
+
+def test_load_hand_edited_utf8_names(tmp_path):
+    # Hand-edited file with literal non-ASCII names; must be read as UTF-8,
+    # not the Windows locale codepage (cp1252).
+    _write(tmp_path / "r.yaml", "name: Süß Raid\nplayers:\n- José\n- Łukasz\n")
+    mgr = RosterManager(str(tmp_path))
+    assert mgr.load("r.yaml") == ["José", "Łukasz"]
+    assert mgr.current_roster_name == "Süß Raid"
+
+
+def test_save_keeps_unicode_names_human_readable(tmp_path):
+    mgr = RosterManager(str(tmp_path))
+    mgr.save("r.yaml", "Raid", ["José"])
+    raw = (tmp_path / "r.yaml").read_bytes()
+    # allow_unicode=True -> the name is stored as UTF-8 text, not \xJJ escapes.
+    assert "José".encode("utf-8") in raw
+    assert RosterManager(str(tmp_path)).load("r.yaml") == ["José"]
+
+
+def test_config_load_empty_file_returns_empty_dict(tmp_path):
+    from types import SimpleNamespace
+
+    from modules.gui_app import ConfigApp
+
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text("", encoding="utf-8")
+    fake = SimpleNamespace(_config_path=str(cfg))
+    assert ConfigApp._load_config(fake) == {}
+
+
+def test_config_load_reads_utf8(tmp_path):
+    from types import SimpleNamespace
+
+    from modules.gui_app import ConfigApp
+
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text("overlay:\n  title: Süß\n", encoding="utf-8")
+    fake = SimpleNamespace(_config_path=str(cfg))
+    assert ConfigApp._load_config(fake)["overlay"]["title"] == "Süß"

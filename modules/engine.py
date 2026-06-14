@@ -14,6 +14,7 @@ Phase 2 — Dark window (RotationState.RUNNING_DARK_WINDOW):
     next player's Phase-1 window begins.
 """
 
+import functools
 import logging
 import threading
 import time
@@ -22,6 +23,28 @@ from enum import Enum, auto
 from modules.events import EngineEvent
 
 logger = logging.getLogger(__name__)
+
+# Lost Ark game data: the Dark Grenade buff lasts 20 s, the Splendid Dark
+# Grenade variant 25 s, and a player's grenade is back up after ~30 s
+# (in-game item behavior; re-verify after balance patches).
+DARK_BUFF_SECONDS     = 20
+SPLENDID_BUFF_SECONDS = 25
+DEFAULT_DARK_COOLDOWN_SECONDS = 30.0
+
+
+def _buff_duration(is_splendid: bool) -> int:
+    return SPLENDID_BUFF_SECONDS if is_splendid else DARK_BUFF_SECONDS
+
+
+def _locked(method):
+    """Run an engine mutator while holding the engine's state lock."""
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return wrapper
 
 
 class RotationState(Enum):
@@ -38,7 +61,9 @@ class RotationEngine:
         self.rot_config = config.get("rotation", {})
         self.warn_secs = self.rot_config.get("warning_seconds", 5)
         self.miss_secs = float(self.rot_config.get("miss_seconds", 20))   # seconds before auto-miss fires
-        self.cooldown_secs: float = self.rot_config.get("dark_cooldown_seconds", 30.0)
+        self.cooldown_secs: float = self.rot_config.get(
+            "dark_cooldown_seconds", DEFAULT_DARK_COOLDOWN_SECONDS
+        )
 
         self.max_throws: int = self.rot_config.get("max_throws_per_run", 3)
 
@@ -52,6 +77,11 @@ class RotationEngine:
         self._timer_thread: threading.Thread | None = None
         self._stop_event = threading.Event()
 
+        # Serializes state transitions across the timer thread, the keyboard
+        # hook thread, and the detection thread. RLock because internal paths
+        # re-enter (e.g. _begin_player_window -> stop on exhaustion).
+        self._lock = threading.RLock()
+
         # Phase-1 (player window) state
         self._player_window_start: float = 0
         self._miss_warned: bool = False
@@ -59,13 +89,13 @@ class RotationEngine:
 
         # Phase-2 (dark window) state
         self._dark_start: float = 0
-        self._dark_duration: int = 20
+        self._dark_duration: int = DARK_BUFF_SECONDS
         self._dark_warned: bool = False   # warning callout during dark countdown
         self._dark_player: str = ""       # who threw the dark (shown on overlay during buff)
 
         # Pause state — frozen display values
         self._paused_remaining: float = 0.0
-        self._paused_duration: float = 20.0
+        self._paused_duration: float = float(DARK_BUFF_SECONDS)
 
     # ------------------------------------------------------------------
     # Public API
@@ -78,10 +108,12 @@ class RotationEngine:
             RotationState.RUNNING_DARK_WINDOW,
         )
 
+    @_locked
     def set_players(self, players: list[str]):
         self.players = list(players)
         self.index = 0
 
+    @_locked
     def start(self):
         if not self.players:
             logger.warning("[Engine] No players loaded.")
@@ -95,12 +127,14 @@ class RotationEngine:
         self._begin_player_window()
         self._start_timer_thread()
 
+    @_locked
     def stop(self):
         self._stop_event.set()
         self._set_state(RotationState.IDLE)
         self.index = 0
         logger.info("[Engine] Rotation stopped.")
 
+    @_locked
     def pause(self):
         if not self.is_running:
             return
@@ -116,13 +150,14 @@ class RotationEngine:
         self._set_state(RotationState.PAUSED)
         logger.info("[Engine] Paused.")
 
+    @_locked
     def resume(self, dark_detected: bool = False, is_splendid: bool = False):
         if self.state != RotationState.PAUSED:
             return
         if dark_detected:
             # Dark is still active in-game — restart its countdown from now
             self._dark_start = time.time()
-            self._dark_duration = 25 if is_splendid else 20
+            self._dark_duration = _buff_duration(is_splendid)
             self._dark_warned = False
             self._set_state(RotationState.RUNNING_DARK_WINDOW)
         else:
@@ -134,6 +169,7 @@ class RotationEngine:
             self._start_timer_thread()
         logger.info("[Engine] Resumed.")
 
+    @_locked
     def reset(self):
         """Reset rotation to player 1, clearing all counts. Returns to armed/idle state."""
         if self.state not in (
@@ -151,28 +187,18 @@ class RotationEngine:
         self.on_event(EngineEvent.RESET, {})
         logger.info("[Engine] Rotation reset to player 1.")
 
+    @_locked
     def on_dark_detected(self, player: str, is_splendid: bool):
         """Called when a dark grenade throw is confirmed (via hotkey or detection)."""
         if self.state != RotationState.RUNNING_PLAYER_WINDOW:
             return
 
-        duration = 25 if is_splendid else 20
+        duration = _buff_duration(is_splendid)
         kind = "Splendid Dark" if is_splendid else "Dark"
         self.on_event(EngineEvent.CONFIRMED, {"player": player, "kind": kind, "duration": duration})
 
-        # Record throw time and increment run count
-        key = player.lower()
-        self._throw_times[key] = time.time()
-        self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
-        count = self._throw_counts[key]
+        count = self._record_throw(player)
         logger.info(f"[Engine] {player} throw {count}/{self.max_throws}")
-
-        # Mark exhausted when they hit the per-run cap
-        if count >= self.max_throws:
-            for p in self.players:
-                if p.lower() == key:
-                    self._exhausted.add(p)
-                    break
 
         # A dark is now active regardless of who threw it.
         # Advance past the current expected slot and start the buff countdown.
@@ -184,6 +210,7 @@ class RotationEngine:
         self._dark_warned = False
         self._set_state(RotationState.RUNNING_DARK_WINDOW)
 
+    @_locked
     def on_dark_missed(self):
         """Called by F10 — counts the miss against the current player's throw
         limit, then immediately advances to the next player (no dark countdown)."""
@@ -191,23 +218,28 @@ class RotationEngine:
             return
 
         player = self._current_player()
-        key = player.lower()
-
-        self._throw_times[key] = time.time()
-        self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
-        count = self._throw_counts[key]
+        count = self._record_throw(player)
         logger.info(f"[Engine] {player} MISSED — throw {count}/{self.max_throws}")
 
         self.on_event(EngineEvent.MISSED, {"player": player})
 
+        self._advance()
+        self._begin_player_window()
+
+    def _record_throw(self, player: str) -> int:
+        """Record a throw (confirmed or missed): stamp the cooldown time, bump
+        the per-run count, and mark the player exhausted at the cap. Returns
+        the new count. Shared by the confirm and miss paths."""
+        key = player.lower()
+        self._throw_times[key] = time.time()
+        self._throw_counts[key] = self._throw_counts.get(key, 0) + 1
+        count = self._throw_counts[key]
         if count >= self.max_throws:
             for p in self.players:
                 if p.lower() == key:
                     self._exhausted.add(p)
                     break
-
-        self._advance()
-        self._begin_player_window()
+        return count
 
     # ------------------------------------------------------------------
     # Timing internals
@@ -223,6 +255,7 @@ class RotationEngine:
                 self._tick()
             time.sleep(0.25)
 
+    @_locked
     def _tick(self):
         if self.state == RotationState.RUNNING_DARK_WINDOW:
             # ── Phase 2: dark buff is running ──────────────────────────

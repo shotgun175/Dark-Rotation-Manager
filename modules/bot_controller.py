@@ -77,28 +77,6 @@ class BotController:
         if self.audio:     self.audio.shutdown()
         self.engine = self.hotkeys = self.overlay = self.detection = self.audio = None
 
-    def apply(self, config: dict, players: list[str]):
-        if self.engine:
-            rot = config.get("rotation", {})
-            self.engine.warn_secs     = rot.get("warning_seconds", 5)
-            self.engine.cooldown_secs = rot.get("dark_cooldown_seconds", 30)
-            self.engine.max_throws    = rot.get("max_throws_per_run", 3)
-            self.engine.miss_secs     = rot.get("miss_seconds", 20)
-            self.engine.set_players(players)
-        if self.detection:
-            self.detection.update_config(config)
-        if self.audio:
-            self.audio.update_config(config, players)
-        if self.hotkeys:
-            for action, key in config.get("hotkeys", {}).items():
-                self.hotkeys.update_key(action, key)
-        if self.overlay:
-            self.overlay.setWindowOpacity(config.get("overlay", {}).get("opacity", 1.0))
-
-    def set_audio_volume(self, volume: float):
-        if self.audio:
-            self.audio.set_volume(volume)
-
     # ── Hotkey callbacks ─────────────────────────────────────────────
     def _hotkey_start_stop(self):
         if not self.engine:

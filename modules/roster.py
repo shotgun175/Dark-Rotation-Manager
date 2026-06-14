@@ -27,8 +27,8 @@ class RosterManager:
         if not os.path.exists(path):
             raise FileNotFoundError(f"Roster file not found: {path}")
 
-        with open(path, "r") as f:
-            data = yaml.safe_load(f)
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
 
         players = [str(p) for p in data.get("players", [])]
         self.current_roster_name = data.get("name", filename)
@@ -39,6 +39,8 @@ class RosterManager:
         """Save a roster to a YAML file (atomic write)."""
         path = os.path.join(self.rosters_dir, filename)
         data = {"name": name, "players": players}
-        atomic_write_text(path, yaml.dump(data, default_flow_style=False))
+        atomic_write_text(
+            path, yaml.dump(data, default_flow_style=False, allow_unicode=True)
+        )
         logger.info(f"[Roster] Saved '{name}' to {path}")
 

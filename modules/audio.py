@@ -1,12 +1,15 @@
 """
-audio.py - Audio manager for Dark Rotation Bot
+audio.py - Audio manager for Dark Rotation Manager
 
 Handles two types of audio:
   1. TTS voice lines via edge-tts (pre-rendered at bot launch, played instantly)
   2. A chime sound effect for auto-detection confirms
 
-All pygame calls happen on the main thread (called from _on_engine_event_ui).
-Pre-rendering runs in a background thread so the GUI stays responsive.
+The global music stream (pygame.mixer.music) is driven only from the main
+thread (called from _on_engine_event_ui). Pre-rendering runs in a background
+thread so the GUI stays responsive; Test Voice renders+plays on a background
+thread too, but through a dedicated mixer Channel (channel ops are
+mutex-protected in SDL_mixer) so it never touches the music stream.
 """
 
 import logging
@@ -56,10 +59,11 @@ class AudioManager:
     def __init__(self, config: dict):
         self._config     = config
         self._cache: dict[str, str] = {}          # key -> mp3 path
-        self._temp_dir   = tempfile.mkdtemp(prefix="darkbot_tts_")
+        self._temp_dir   = tempfile.mkdtemp(prefix="drm_tts_")
         self._ready      = False
         self._volume     = float(config.get("audio", {}).get("volume", 0.8))
         self._render_thread: threading.Thread | None = None
+        self._test_thread: threading.Thread | None = None
 
         # Reserve channel 0 for chime
         if _pygame_ok:
@@ -140,17 +144,24 @@ class AudioManager:
         if path and os.path.exists(path):
             self._play_tts(path)
         else:
-            # Render on the fly for test
+            # Render on the fly for test — on a background thread (mirroring
+            # prerender), since the edge-tts render is a network call and
+            # play_test is invoked from the Qt main thread. One render at a
+            # time: concurrent clicks would interleave writes to one file.
+            if self._test_thread and self._test_thread.is_alive():
+                return
             voice_id = VOICE_MAP.get(voice, VOICE_MAP["Andrew"])
             out = os.path.join(self._temp_dir, f"test_{voice}.mp3")
-            try:
-                asyncio.run(self._async_render("Dark confirmed", voice_id, out))
-                self._play_tts(out)
-            except Exception as e:
-                logger.exception(f"[Audio] Test render failed: {e}")
 
-    def set_volume(self, volume: float):
-        self._volume = max(0.0, min(1.0, volume))
+            def _render_and_play():
+                try:
+                    asyncio.run(self._async_render("Dark confirmed", voice_id, out))
+                    self._play_test_clip(out)
+                except Exception as e:
+                    logger.exception(f"[Audio] Test render failed: {e}")
+
+            self._test_thread = threading.Thread(target=_render_and_play, daemon=True)
+            self._test_thread.start()
 
     def update_config(self, config: dict, players: list[str] | None = None):
         old_voice = self._config.get("audio", {}).get("voice", "Andrew")
@@ -230,6 +241,20 @@ class AudioManager:
             pygame.mixer.music.play()
         except Exception as e:
             logger.exception(f"[Audio] Playback error: {e}")
+
+    def _play_test_clip(self, path: str):
+        """Play a clip from the test-render thread.
+
+        Must NOT use pygame.mixer.music: the main thread drives that global
+        stream for live cues, and a cross-thread music.load races SDL_mixer's
+        free of the playing stream. A Sound on its own channel is safe.
+        """
+        try:
+            sound = pygame.mixer.Sound(path)
+            sound.set_volume(self._volume)
+            pygame.mixer.Channel(1).play(sound)
+        except Exception as e:
+            logger.exception(f"[Audio] Test playback error: {e}")
 
     def _load_chime(self):
         if not os.path.exists(CHIME_PATH):
