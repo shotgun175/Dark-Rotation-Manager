@@ -101,9 +101,12 @@ setup, verified against the current code.
 ### Confirmed assumptions
 
 - **English game client.** The app finds the game by looking for a visible window
-  whose title contains `LOST ARK` (case-insensitive) — `LOSTARK_WINDOW_TITLE` in
-  `modules/paths.py`. A localized client with a translated window title won't be
-  found, so auto-detection and window-relative positioning won't work on it.
+  whose title starts with `LOST ARK` in capitals (the client's title reads like
+  `LOST ARK (64-bit, DX11) v.3.23.1.1`), set by `LOSTARK_WINDOW_TITLE` in
+  `modules/paths.py`. Other windows named after the game, such as a browser tab,
+  an editor or a folder called "Lost Ark", are ignored. A localized client with a
+  translated window title won't be found, so auto-detection and window-relative
+  positioning won't work on it.
 - **Window position and monitor are handled automatically.** The detection region
   is anchored to the Lost Ark window's client top-left and resolved to absolute
   screen coordinates, so the game can sit on any monitor, anywhere, windowed or

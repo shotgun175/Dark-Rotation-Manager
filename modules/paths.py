@@ -56,7 +56,7 @@ def find_lostark_window() -> tuple[int, int] | None:
         def _cb(hwnd, results):
             if win32gui.IsWindowVisible(hwnd):
                 title = win32gui.GetWindowText(hwnd)
-                if LOSTARK_WINDOW_TITLE.lower() in title.lower():
+                if title.startswith(LOSTARK_WINDOW_TITLE):
                     rect = win32gui.GetClientRect(hwnd)
                     pt = win32gui.ClientToScreen(hwnd, (rect[0], rect[1]))
                     results.append(pt)
