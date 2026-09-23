@@ -193,11 +193,13 @@ class ConfigApp(QMainWindow):
         )
         hub_link.setStyleSheet("font-size: 12px;")
         hub_link.setOpenExternalLinks(True)
+        hub_link.setTextInteractionFlags(Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard)
         hub_link.setToolTip("Open the Lost Ark Tools hub in your browser")
 
         self._update_label = QLabel("")
         self._update_label.setStyleSheet("color: #ffcc44; font-size: 12px;")
         self._update_label.setOpenExternalLinks(True)
+        self._update_label.setTextInteractionFlags(Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard)
         self._update_label.setToolTip("A newer release is available on GitHub.")
         self._update_label.setVisible(False)
 
