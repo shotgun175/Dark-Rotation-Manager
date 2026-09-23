@@ -153,3 +153,50 @@ def test_start_bot_failure_stops_controller_and_shows_status():
     assert calls[0] == "stop"
     assert calls[1].startswith("Launch failed")
     assert "hide" not in calls
+
+
+def test_failed_launch_status_stays_red_after_apply_button_restores():
+    from types import SimpleNamespace
+
+    from modules.gui_app import ConfigApp
+
+    class Label:
+        def __init__(self):
+            self._text, self.style = "", ""
+
+        def setText(self, text):
+            self._text = text
+
+        def text(self):
+            return self._text
+
+        def setStyleSheet(self, style):
+            self.style = style
+
+    def failing_start(*args, **kwargs):
+        raise ValueError("boom")
+
+    scheduled = []
+    fake = SimpleNamespace(
+        # Launch runs Apply first, which schedules _restore_apply_btn 1.2 s later.
+        _apply=lambda: scheduled.append("restore") or True,
+        _preview_overlay=None,
+        _load_config=lambda: {},
+        _roster_mgr=SimpleNamespace(load=lambda filename: ["Alice"]),
+        _controller=SimpleNamespace(start=failing_start, stop=lambda: None, is_running=False),
+        _on_overlay_moved=None,
+        _handle_overlay_stop=None,
+        _status_dot=Label(),
+        _status_text=Label(),
+        _apply_btn=SimpleNamespace(setEnabled=lambda on: None, setText=lambda text: None),
+    )
+    fake._set_status_text = lambda text, color: ConfigApp._set_status_text(fake, text, color)
+
+    ConfigApp._start_bot(fake)
+    assert scheduled == ["restore"]
+    assert fake._status_text.text().startswith("Launch failed")
+    assert "#ff4444" in fake._status_text.style
+
+    ConfigApp._restore_apply_btn(fake)
+    assert "#ff4444" in fake._status_text.style
+    assert "#ff4444" in fake._status_dot.style

@@ -44,6 +44,8 @@ overlay and configurable hotkeys. Confirms throws manually via hotkey.
    `(Get-FileHash .\Dark.Rotation.Manager.exe -Algorithm SHA256).Hash.ToLower()`
 3. Double-click the exe. It is not code-signed, so Windows SmartScreen may warn on first run:
    click **More info**, then **Run anyway**.
+4. Edit your roster, hotkeys, and settings from the GUI. **▶ Launch** saves your changes
+   and arms the bot (overlay appears, audio pre-renders), then press **F8** to start the rotation.
 
 ### Run from source
 

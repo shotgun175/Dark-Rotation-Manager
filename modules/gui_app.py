@@ -290,7 +290,9 @@ class ConfigApp(QMainWindow):
     def _restore_apply_btn(self):
         self._apply_btn.setEnabled(True)
         self._apply_btn.setText("Apply")
-        if not self._controller.is_running:
+        # Launch runs Apply first, so a failed Launch lands here too; keep its red status.
+        launch_failed = self._status_text.text().startswith("Launch failed")
+        if not self._controller.is_running and not launch_failed:
             self._status_text.setStyleSheet("color: #999; font-size: 14px;")
 
     # ------------------------------------------------------------------
