@@ -21,7 +21,7 @@ def test_shutdown_removes_temp_dir():
 
 def test_play_test_renders_off_the_calling_thread(monkeypatch):
     """An uncached Test Voice click must not run the network render on the
-    caller (Qt main) thread — it froze the GUI for the request duration."""
+    caller (Qt main) thread; it froze the GUI for the request duration."""
     mgr = AudioManager({"audio": {"voice": "Andrew"}})
     monkeypatch.setattr(audio, "_pygame_ok", True)
 
@@ -113,6 +113,7 @@ def test_stalled_render_times_out_and_the_run_still_becomes_ready(monkeypatch, c
         assert mgr._ready is True
         assert mgr._cache == {}
         assert "Render failed" in caplog.text
+        assert "timed out after 0.05 seconds" in caplog.text
     finally:
         mgr.shutdown()
 

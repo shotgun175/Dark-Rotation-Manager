@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 class HotkeyManager:
     def __init__(self, config: dict, callbacks: dict):
         """
-        config    — the 'hotkeys' section from config.yaml
-        callbacks — dict mapping action names to functions:
+        config    - the 'hotkeys' section from config.yaml
+        callbacks - dict mapping action names to functions:
                     {
                         'start_stop': fn,
                         'confirm':    fn,

@@ -22,7 +22,7 @@ class RotationTab(QWidget):
         layout.setContentsMargins(18, 18, 18, 18)
         layout.setSpacing(16)
 
-        # Minimum 1 for all timing/count fields — the engine does not support zero values
+        # Minimum 1 for all timing/count fields; the engine does not support zero values
         # (zero cooldown would skip all players; zero throws would end rotation immediately).
         self._max_throws = self._field(
             layout, "MAX THROWS PER RUN", max_throws, 1, 99,

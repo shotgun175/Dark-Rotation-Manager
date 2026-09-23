@@ -6,7 +6,7 @@ written to stdout/stderr is discarded. setup_logging() routes log output to a
 rotating file under <base_dir>/logs/ instead, keeping the build diagnosable.
 
 Call setup_logging() exactly once, as early as possible at startup (see
-gui.py). It is idempotent — repeat calls are no-ops.
+gui.py). It is idempotent; repeat calls are no-ops.
 """
 
 import logging

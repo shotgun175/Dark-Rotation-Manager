@@ -9,7 +9,7 @@ from modules.styles import LABEL_DIM
 
 ACTIONS = [
     ("start_stop", "Start / Pause rotation",  "Start, pause, or resume the rotation"),
-    ("confirm",    "Confirm dark thrown",      "Starts the 20–25s buff countdown"),
+    ("confirm",    "Confirm dark thrown",      "Starts the 20-25s buff countdown"),
     ("missed",     "Dark missed",              "Counts miss, advances to next player"),
     ("reset",      "Reset rotation",           "Restart from player 1, clear all counts"),
 ]

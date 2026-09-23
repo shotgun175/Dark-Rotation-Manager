@@ -27,7 +27,7 @@ SPLENDID_TEMPLATE_PATH  = get_resource(os.path.join("assets", "templates", "sple
 # Lost Ark window's client top-left. Calibrated against a 2560x1440 display
 # (the reference frame the GUI's region preview also draws against); other
 # resolutions/UI scales should redraw the region in the Overlay tab.
-# Single source of truth — overlay_tab and config.example.yaml mirror these.
+# Single source of truth: overlay_tab and config.example.yaml mirror these.
 DEFAULT_REGION_REL_X  = 875
 DEFAULT_REGION_REL_Y  = 325
 DEFAULT_REGION_WIDTH  = 456
@@ -40,8 +40,8 @@ CALIBRATION_HEIGHT    = 1440
 class DetectionEngine:
     def __init__(self, config: dict, on_detected):
         """
-        config       — full app config dict
-        on_detected  — callable(is_splendid: bool) called on match
+        config       - full app config dict
+        on_detected  - callable(is_splendid: bool) called on match
         """
         self._config = config
         self._on_detected = on_detected
@@ -83,7 +83,7 @@ class DetectionEngine:
         if self._running:
             return
         if self._dark_tmpl is None or self._splendid_tmpl is None:
-            logger.error("[Detection] Cannot start — template images missing.")
+            logger.error("[Detection] Cannot start: template images missing.")
             return
         self._running = True
         self._paused = False
@@ -98,7 +98,7 @@ class DetectionEngine:
         logger.info("[Detection] Stopped.")
 
     def pause(self):
-        """Call while dark buff is active — no need to scan."""
+        """Call while dark buff is active; no need to scan."""
         self._paused = True
 
     def resume(self):
@@ -131,10 +131,6 @@ class DetectionEngine:
             logger.exception(f"[Detection] check_now error: {e}")
             return False, False
 
-    def update_config(self, config: dict):
-        self._config = config
-        self._load_config()
-
     # ------------------------------------------------------------------
     # Detection loop
     # ------------------------------------------------------------------
@@ -152,7 +148,7 @@ class DetectionEngine:
     def _scan(self, sct):
         win_pos = find_lostark_window()
         if win_pos is None:
-            return  # Lost Ark not running/visible — silently skip
+            return  # Lost Ark not running/visible; silently skip
 
         win_x, win_y = win_pos
         region = {
