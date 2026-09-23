@@ -33,6 +33,8 @@ DEFAULT_REGION_REL_Y  = 325
 DEFAULT_REGION_WIDTH  = 456
 DEFAULT_REGION_HEIGHT = 46
 DEFAULT_THRESHOLD     = 0.75   # OpenCV template-match confidence
+# Used only when config.yaml has no detection.enabled key (the example config sets it).
+DEFAULT_DETECTION_ENABLED = False
 CALIBRATION_WIDTH     = 2560
 CALIBRATION_HEIGHT    = 1440
 

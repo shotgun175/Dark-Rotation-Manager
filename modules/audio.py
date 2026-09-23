@@ -65,6 +65,7 @@ class AudioManager:
         self._cache: dict[str, str] = {}          # key -> mp3 path
         self._temp_dir   = tempfile.mkdtemp(prefix="drm_tts_")
         self._ready      = False
+        self.render_failures = 0
         self._volume     = float(config.get("audio", {}).get("volume", 0.8))
         self._render_thread: threading.Thread | None = None
         self._test_thread: threading.Thread | None = None
@@ -219,6 +220,7 @@ class AudioManager:
             for (text, key), result in zip(to_render, results):
                 if isinstance(result, Exception):
                     logger.error(f"[Audio] Render failed for '{text}': {result}")
+                    self.render_failures += 1
                 else:
                     self._cache[key] = out_paths[key]
 

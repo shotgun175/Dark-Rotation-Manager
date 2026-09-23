@@ -193,11 +193,13 @@ class ConfigApp(QMainWindow):
         )
         hub_link.setStyleSheet("font-size: 12px;")
         hub_link.setOpenExternalLinks(True)
+        hub_link.setTextInteractionFlags(Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard)
         hub_link.setToolTip("Open the Lost Ark Tools hub in your browser")
 
         self._update_label = QLabel("")
         self._update_label.setStyleSheet("color: #ffcc44; font-size: 12px;")
         self._update_label.setOpenExternalLinks(True)
+        self._update_label.setTextInteractionFlags(Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard)
         self._update_label.setToolTip("A newer release is available on GitHub.")
         self._update_label.setVisible(False)
 
@@ -259,7 +261,7 @@ class ConfigApp(QMainWindow):
     def _apply(self):
         if self._hotkeys_tab.has_conflicts():
             self._set_status_text("Fix duplicate hotkeys before applying", "#ff4444")
-            return
+            return False
 
         self._reload_config()
 
@@ -283,11 +285,14 @@ class ConfigApp(QMainWindow):
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")
         QTimer.singleShot(1200, self._restore_apply_btn)
+        return True
 
     def _restore_apply_btn(self):
         self._apply_btn.setEnabled(True)
         self._apply_btn.setText("Apply")
-        if not self._controller.is_running:
+        # Launch runs Apply first, so a failed Launch lands here too; keep its red status.
+        launch_failed = self._status_text.text().startswith("Launch failed")
+        if not self._controller.is_running and not launch_failed:
             self._status_text.setStyleSheet("color: #999; font-size: 14px;")
 
     # ------------------------------------------------------------------
@@ -301,6 +306,11 @@ class ConfigApp(QMainWindow):
             self._start_bot()
 
     def _start_bot(self):
+        if not self._apply():
+            return
+        if self._preview_overlay:
+            self._preview_overlay.close()
+            self._preview_overlay = None
         try:
             self._config = self._load_config()
             roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")

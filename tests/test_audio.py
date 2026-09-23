@@ -165,3 +165,17 @@ def test_play_test_caches_its_clip_so_a_second_click_renders_nothing(monkeypatch
         if mgr._test_thread:
             mgr._test_thread.join(timeout=5)
         mgr.shutdown()
+
+
+def test_failed_renders_are_counted_and_the_run_still_becomes_ready(monkeypatch):
+    async def offline_render(text, voice_id, out_path):
+        raise OSError("network unreachable")
+
+    monkeypatch.setattr(AudioManager, "_async_render", staticmethod(offline_render))
+    mgr = AudioManager({"audio": {"voice": "Andrew"}})
+    try:
+        mgr._render_all(["A"])  # 2 player clips + 3 shared clips
+        assert mgr.render_failures == 5
+        assert mgr._ready is True
+    finally:
+        mgr.shutdown()

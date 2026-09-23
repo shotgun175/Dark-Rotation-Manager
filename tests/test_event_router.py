@@ -14,6 +14,7 @@ from modules.events import EngineEvent
 class FakeAudio:
     def __init__(self):
         self.calls = []
+        self.render_failures = 0
 
     def play_chime(self):
         self.calls.append("chime")
@@ -65,3 +66,19 @@ def test_f9_confirm_then_detection_hit_plays_the_voice():
 def test_single_confirms_pick_their_own_cue():
     assert _replay(_detection) == (1, ["chime"])
     assert _replay(_hotkey) == (1, [EngineEvent.CONFIRMED])
+
+
+def test_voice_failure_notice_shows_once_per_run():
+    from types import SimpleNamespace
+
+    messages = []
+    audio = FakeAudio()
+    audio.render_failures = 1
+    overlay = SimpleNamespace(set_status_message=lambda text, color: messages.append(text))
+    ctrl = SimpleNamespace(detection=None, audio=audio, overlay=overlay)
+    router = EventRouter(ctrl)
+
+    router.handle(EngineEvent.ANNOUNCE, {"player": "A"}, lambda *args: None)
+    router.handle(EngineEvent.ANNOUNCE, {"player": "B"}, lambda *args: None)
+
+    assert messages == ["Voice cues failed to load - check internet (see logs)"]

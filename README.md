@@ -35,27 +35,41 @@ overlay and configurable hotkeys. Confirms throws manually via hotkey.
 
 ## Setup
 
-### 1. Clone the repo
+### Download (no Python needed)
+
+1. From the [latest release](https://github.com/shotgun175/Dark-Rotation-Manager/releases/latest),
+   download `Dark.Rotation.Manager.exe` (and `Dark.Rotation.Manager.exe.sha256` to verify it) into a
+   folder of its own. On first launch the app creates `config.yaml`, `rosters/` and `logs/` beside the exe.
+2. Optional: verify the download in PowerShell. The hash printed must match the first field of the `.sha256` file:
+   `(Get-FileHash .\Dark.Rotation.Manager.exe -Algorithm SHA256).Hash.ToLower()`
+3. Double-click the exe. It is not code-signed, so Windows SmartScreen may warn on first run:
+   click **More info**, then **Run anyway**.
+4. Edit your roster, hotkeys, and settings from the GUI. **▶ Launch** saves your changes
+   and arms the bot (overlay appears, audio pre-renders), then press **F8** to start the rotation.
+
+### Run from source
+
+#### 1. Clone the repo
 
 ```bash
 git clone https://github.com/shotgun175/Dark-Rotation-Manager.git
 cd Dark-Rotation-Manager
 ```
 
-### 2. Install dependencies
+#### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Run the GUI
+#### 3. Run the GUI
 
 ```bash
 python gui.py
 ```
 
-Edit your roster, hotkeys, and settings from the GUI. Click **Apply** to save,
-then **▶ Launch** to arm the bot (overlay appears, audio pre-renders), then press **F8** to start the rotation.
+Edit your roster, hotkeys, and settings from the GUI. **▶ Launch** saves your changes
+and arms the bot (overlay appears, audio pre-renders), then press **F8** to start the rotation.
 
 ---
 
@@ -229,6 +243,14 @@ MIT
 ---
 
 ## Changelog
+
+### v1.2.7 - Launch saves your edits, voice failure notice, keyboard links
+- **Fix:** Launch now saves what the settings window shows first, so a player you just added or a changed max throws is used without clicking Apply. A duplicate hotkey blocks Launch with the same message Apply shows
+- **Fix:** the 'Preview on screen' overlay now closes when you Launch, instead of staying over the game with no way to close it
+- **Fix:** if `config.yaml` has no `detection.enabled` setting, the Overlay tab now shows auto-detect unticked, matching what Launch already did. Configs that set it (including every fresh install) are unchanged
+- **New:** if the voice lines fail to download (no internet, or the voice service rejects the request), the overlay says 'Voice cues failed to load - check internet (see logs)' once per run instead of staying silent
+- **Improved:** the Update available banner and the Lost Ark Tools link in the bottom bar can now be reached with Tab and opened with Enter
+- **Docs:** the README now has download steps for the ready-made `.exe` (no Python needed), including how to verify the download and get past the SmartScreen prompt
 
 ### v1.2.6 - Smaller download and text fixes
 - **Improved:** the `.exe` download is about 23 MB smaller and unpacks less to your Windows temp folder on each launch. It no longer bundles video and OpenGL files the app never uses; nothing about how it works changes

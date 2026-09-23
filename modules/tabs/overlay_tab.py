@@ -13,7 +13,7 @@ from modules.styles import (
     INPUT_DARK, LABEL_DIM, LABEL_HINT, LABEL_SECTION, SLIDER_GOLD,
 )
 from modules.detection import (
-    CALIBRATION_HEIGHT, CALIBRATION_WIDTH,
+    CALIBRATION_HEIGHT, CALIBRATION_WIDTH, DEFAULT_DETECTION_ENABLED,
     DEFAULT_REGION_HEIGHT, DEFAULT_REGION_REL_X,
     DEFAULT_REGION_REL_Y, DEFAULT_REGION_WIDTH,
 )
@@ -76,7 +76,7 @@ class OverlayTab(QWidget):
             height=ov.get("height", 230),
             opacity_pct=int(round(ov.get("opacity", 0.88) * 100)),
             font_size=ov.get("font_size", 16),
-            detection_enabled=det.get("enabled", True),
+            detection_enabled=det.get("enabled", DEFAULT_DETECTION_ENABLED),
             det_rel_x=det.get("rel_x", DEFAULT_REGION_REL_X),
             det_rel_y=det.get("rel_y", DEFAULT_REGION_REL_Y),
             det_w=det.get("width", DEFAULT_REGION_WIDTH),
@@ -84,7 +84,7 @@ class OverlayTab(QWidget):
         )
 
     def _build_ui(self, x, y, width, height, opacity_pct, font_size,
-                  detection_enabled=True,
+                  detection_enabled=DEFAULT_DETECTION_ENABLED,
                   det_rel_x=DEFAULT_REGION_REL_X, det_rel_y=DEFAULT_REGION_REL_Y,
                   det_w=DEFAULT_REGION_WIDTH, det_h=DEFAULT_REGION_HEIGHT):
 
