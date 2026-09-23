@@ -234,7 +234,7 @@ MIT
 - **Fix:** a voice line download that stalls (for example a Wi-Fi drop mid-download) now gives up after 30 seconds, instead of muting every voice cue for the rest of the run
 - **Fix:** Stop no longer leaves a `drm_tts_` temp folder behind in your Windows temp folder. A voice cue that is still playing when you press Stop is cut off
 - **Fix:** Reset pressed at the exact moment a player's time runs out now always takes effect, instead of occasionally recording a miss and announcing the next player
-- **Improvement:** Test Voice reuses the clip it already made, so repeat clicks play right away without downloading it again
+- **Improved:** Test Voice reuses the clip it already made, so repeat clicks play right away without downloading it again
 - **Fix:** the app now finds the game only by its real window title (`LOST ARK (64-bit, DX11) ...`). A browser tab, editor or folder with "Lost Ark" in its name (including the Lost Ark Tools hub the app links to) sitting above the game no longer throws off the detection region or auto-detect
 
 ### v1.2.4 - Hotkey and launch reliability fixes
