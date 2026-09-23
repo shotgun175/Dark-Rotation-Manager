@@ -10,10 +10,14 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 
 logger = logging.getLogger(__name__)
 
 LOSTARK_WINDOW_TITLE = "LOST ARK"
+
+REPLACE_ATTEMPTS = 5
+REPLACE_RETRY_SECONDS = 0.05
 
 
 def get_base_dir() -> str:
@@ -82,7 +86,16 @@ def atomic_write_text(path: str, text: str, encoding: str = "utf-8") -> None:
             f.write(text)
             f.flush()
             os.fsync(f.fileno())
-        os.replace(tmp, path)
+        # On Windows a brief lock on the target (antivirus scan, cloud sync,
+        # an editor) makes os.replace raise PermissionError; retry briefly.
+        for attempt in range(REPLACE_ATTEMPTS):
+            try:
+                os.replace(tmp, path)
+                break
+            except PermissionError:
+                if attempt == REPLACE_ATTEMPTS - 1:
+                    raise
+                time.sleep(REPLACE_RETRY_SECONDS)
     except BaseException:
         try:
             os.remove(tmp)

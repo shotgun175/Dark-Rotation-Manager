@@ -152,7 +152,9 @@ setup, verified against the current code.
 
 The complete, shipped defaults live in
 [`config.example.yaml`](config.example.yaml) — first run copies it to
-`config.yaml`. The non-obvious keys:
+`config.yaml`. You can edit `config.yaml` by hand while the app is open: Apply
+and closing the app re-read the file before saving, so your values are kept, but
+any comments in it are removed on every save. The non-obvious keys:
 
 ```yaml
 rotation:

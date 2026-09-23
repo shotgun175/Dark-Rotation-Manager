@@ -43,6 +43,30 @@ def test_failed_replace_preserves_original_and_cleans_temp(tmp_path, monkeypatch
     assert sorted(p.name for p in tmp_path.iterdir()) == ["f.txt"]
 
 
+def test_transient_permission_error_on_replace_is_retried(tmp_path, monkeypatch):
+    """A brief lock on the target (antivirus, cloud sync) makes os.replace
+    raise PermissionError on Windows; the write must land on a retry."""
+    target = tmp_path / "f.txt"
+    target.write_text("ORIGINAL", encoding="utf-8")
+
+    real_replace = paths.os.replace
+    calls = []
+
+    def _locked_once(src, dst):
+        calls.append(1)
+        if len(calls) == 1:
+            raise PermissionError("simulated transient lock")
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(paths.os, "replace", _locked_once)
+
+    atomic_write_text(str(target), "NEW")
+
+    assert len(calls) == 2
+    assert target.read_text(encoding="utf-8") == "NEW"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["f.txt"]
+
+
 def test_roster_save_is_atomic_and_clean(tmp_path):
     mgr = RosterManager(str(tmp_path))
     mgr.save("r.yaml", "Raid", ["Alice", "Bob"])

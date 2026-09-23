@@ -80,6 +80,20 @@ class ConfigApp(QMainWindow):
                 cfg[key] = {}
         return cfg
 
+    def _reload_config(self):
+        """Re-read config.yaml before a save so keys hand-edited while the app
+        is open survive (comments are still dropped by yaml.dump). Keeps the
+        in-memory copy if the file cannot be read or is not a mapping."""
+        try:
+            cfg = self._load_config()
+        except Exception as e:
+            logger.warning(f"[Config] Re-read failed, keeping in-memory copy: {e}")
+            return
+        if not isinstance(cfg, dict):
+            logger.warning("[Config] config.yaml is not a mapping, keeping in-memory copy")
+            return
+        self._config = cfg
+
     def _save_config(self):
         atomic_write_text(
             self._config_path,
@@ -240,6 +254,11 @@ class ConfigApp(QMainWindow):
             self._set_status_text("Fix duplicate hotkeys before applying", "#ff4444")
             return
 
+        # Save the tab's players to the roster they were loaded from, even if
+        # active_roster was hand-edited on disk since.
+        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
+        self._reload_config()
+
         rot_vals = self._rotation_tab.get_values()
         ov_vals  = self._overlay_tab.get_values()
         hk_vals  = self._hotkeys_tab.get_bindings()
@@ -255,7 +274,6 @@ class ConfigApp(QMainWindow):
 
         self._save_config()
 
-        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
         self._roster_mgr.save(
             roster_file,
             self._roster_mgr.current_roster_name or roster_file,
@@ -406,6 +424,7 @@ class ConfigApp(QMainWindow):
             self._test_audio.shutdown()
         if self._preview_overlay:
             self._preview_overlay.close()
+        self._reload_config()
         p = self.pos()
         self._config.setdefault("gui", {})["position"] = {"x": p.x(), "y": p.y()}
         self._save_config()
