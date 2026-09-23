@@ -1,7 +1,7 @@
 """Smoke tests for the RotationEngine state machine.
 
 Time is driven deterministically via a FakeClock that replaces the `time`
-module reference inside modules.engine — no real sleeping, no timer thread.
+module reference inside modules.engine; no real sleeping, no timer thread.
 The background timer thread is suppressed (_start_timer_thread -> no-op) so
 tests drive transitions by calling _tick() / the public API directly.
 """
@@ -107,7 +107,7 @@ def test_confirm_cannot_interleave_into_auto_miss(make_engine):
     assert not t_tick.is_alive() and not t_confirm.is_alive()
 
     # Serialized outcome: the miss completed first, then the confirm started
-    # the dark window — which must survive (pre-lock it was overwritten by a
+    # the dark window, which must survive (pre-lock it was overwritten by a
     # second _begin_player_window, double-advancing the rotation).
     assert eng.state is RotationState.RUNNING_DARK_WINDOW
     assert len(events_of(events, EngineEvent.MISSED)) == 1
@@ -156,7 +156,7 @@ def test_start_is_noop_when_already_running(make_engine):
 
 
 # ----------------------------------------------------------------------
-# Phase 1 — player window timing (miss_secs / warn_secs)
+# Phase 1 - player window timing (miss_secs / warn_secs)
 # ----------------------------------------------------------------------
 
 def test_phase1_warning_fires_at_miss_minus_warn(make_engine):
@@ -226,7 +226,7 @@ def test_confirm_enters_dark_window_normal_duration(make_engine):
     assert eng.state is RotationState.RUNNING_DARK_WINDOW
     assert eng._dark_duration == 20
     confirmed = events_of(events, EngineEvent.CONFIRMED)
-    assert confirmed[0] == {"player": "A", "kind": "Dark", "duration": 20}
+    assert confirmed[0] == {"player": "A", "kind": "Dark", "duration": 20, "source": "hotkey"}
 
 
 def test_confirm_splendid_duration_is_25(make_engine):
@@ -241,7 +241,7 @@ def test_confirm_splendid_duration_is_25(make_engine):
 
 def test_confirm_ignored_outside_player_window(make_engine):
     eng, _clock, events = make_engine(players=["A", "B"])
-    # Engine never started — state is IDLE.
+    # Engine never started; state is IDLE.
     eng.on_dark_detected("A", is_splendid=False)
     assert eng.state is RotationState.IDLE
     assert events_of(events, EngineEvent.CONFIRMED) == []

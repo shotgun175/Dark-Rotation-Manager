@@ -81,12 +81,12 @@ class AudioTab(QWidget):
 
         self._cue_checks = {}
         cue_rows = [
-            ("announce",          announce,          "[Player], throw dark",        "— on player window open"),
-            ("warning",           warning,           "[Player], get ready",         "— before player window closes"),
-            ("confirmed",         confirmed,         "Dark confirmed",               "— on manual F9"),
-            ("rotation_complete", rotation_complete, "All darks used",              "— when rotation ends and all players have used their darks"),
-            ("reset",             reset,             "Dark rotation reset",          "— on F11 reset to start a fresh rotation"),
-            ("chime",             chime,             "Chime - Auto Dark detection", "— chime when dark is auto-detected (toggle detection in Overlay tab)"),
+            ("announce",          announce,          "[Player], throw dark",        "- on player window open"),
+            ("warning",           warning,           "[Player], get ready",         "- before player window closes"),
+            ("confirmed",         confirmed,         "Dark confirmed",               "- on manual F9"),
+            ("rotation_complete", rotation_complete, "All darks used",              "- when rotation ends and all players have used their darks"),
+            ("reset",             reset,             "Dark rotation reset",          "- on F11 reset to start a fresh rotation"),
+            ("chime",             chime,             "Chime - Auto Dark detection", "- chime when dark is auto-detected (toggle detection in Overlay tab)"),
         ]
         for key, checked, label, hint in cue_rows:
             row = QHBoxLayout()

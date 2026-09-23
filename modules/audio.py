@@ -32,7 +32,7 @@ VOICE_MAP = {
 }
 
 # Maps engine event names to the cue key used in config
-# "missed" intentionally omitted — no TTS for missed throws
+# "missed" intentionally omitted; no TTS for missed throws
 EVENT_TO_CUE = {
     EngineEvent.ANNOUNCE:          "announce",
     EngineEvent.WARNING:           "warning",
@@ -148,7 +148,7 @@ class AudioManager:
         if path and os.path.exists(path):
             self._play_tts(path)
         else:
-            # Render on the fly for test — on a background thread (mirroring
+            # Render on the fly for test, on a background thread (mirroring
             # prerender), since the edge-tts render is a network call and
             # play_test is invoked from the Qt main thread. One render at a
             # time: concurrent clicks would interleave writes to one file.
@@ -168,16 +168,9 @@ class AudioManager:
             self._test_thread = threading.Thread(target=_render_and_play, daemon=True)
             self._test_thread.start()
 
-    def update_config(self, config: dict, players: list[str] | None = None):
-        old_voice = self._config.get("audio", {}).get("voice", "Andrew")
-        new_voice = config.get("audio", {}).get("voice", "Andrew")
+    def update_config(self, config: dict):
         self._config = config
         self._volume = float(config.get("audio", {}).get("volume", 0.8))
-
-        # Re-render if voice changed or new players added
-        if players is not None and (old_voice != new_voice or self._has_new_players(players)):
-            self._cache.clear()
-            self.prerender(players)
 
     def shutdown(self):
         """Clean up temp files. Call on bot stop and app close."""
@@ -235,13 +228,17 @@ class AudioManager:
             logger.exception(f"[Audio] Parallel render error: {e}")
 
         self._ready = True
-        logger.info(f"[Audio] Pre-render complete — {len(self._cache)} clips ready.")
+        logger.info(f"[Audio] Pre-render complete: {len(self._cache)} clips ready.")
 
     @staticmethod
     async def _async_render(text: str, voice_id: str, out_path: str):
         import edge_tts
         tts = edge_tts.Communicate(text, voice_id)
-        await asyncio.wait_for(tts.save(out_path), timeout=RENDER_TIMEOUT_SECONDS)
+        try:
+            await asyncio.wait_for(tts.save(out_path), timeout=RENDER_TIMEOUT_SECONDS)
+        except asyncio.TimeoutError:
+            # str() of the bare timeout is empty, which left the log line blank.
+            raise TimeoutError(f"timed out after {RENDER_TIMEOUT_SECONDS} seconds") from None
 
     def _play_tts(self, path: str):
         try:
@@ -279,10 +276,3 @@ class AudioManager:
     def _make_key(voice: str, cue: str, player: str) -> str:
         slug = player.lower().replace(" ", "_")
         return f"{voice}_{cue}_{slug}" if slug else f"{voice}_{cue}"
-
-    def _has_new_players(self, players: list[str]) -> bool:
-        voice = self._config.get("audio", {}).get("voice", "Andrew")
-        for p in players:
-            if self._make_key(voice, "announce", p) not in self._cache:
-                return True
-        return False

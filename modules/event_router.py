@@ -9,14 +9,13 @@ class EventRouter:
     def __init__(self, controller):
         self._ctrl = controller
         self._handlers = {
-            EngineEvent.STATE_CHANGE:      None,  # handled inline (needs status_text_cb)
             EngineEvent.RESET:             self._on_reset,
             EngineEvent.CONFIRMED:         self._on_confirmed,
             EngineEvent.MISSED:            self._on_missed,
             EngineEvent.WARNING:           self._on_warning,
             EngineEvent.ROTATION_COMPLETE: self._on_rotation_complete,
             EngineEvent.COOLDOWN_SKIP:     self._on_cooldown_skip,
-            # ANNOUNCE: no overlay/UI side-effect — handled by overlay's polled status read.
+            # ANNOUNCE: no overlay/UI side-effect; handled by overlay's polled status read.
         }
 
     def handle(self, event_type, data: dict, status_text_cb):
@@ -42,11 +41,10 @@ class EventRouter:
         audio = self._ctrl.audio
         if audio:
             if event_type == EngineEvent.CONFIRMED:
-                if self._ctrl.last_confirm_source == "detection":
+                if data.get("source") == "detection":
                     audio.play_chime()
                 else:
                     audio.play_event(event_type, data)
-                self._ctrl.reset_last_confirm_source()
             else:
                 audio.play_event(event_type, data)
 
@@ -54,11 +52,11 @@ class EventRouter:
     def _on_state_change(self, data, status_text_cb):
         new_state = data.get("state", "")
         if new_state == "PAUSED":
-            status_text_cb("Paused  —  press F8 to resume", "#ffaa00")
+            status_text_cb("Paused  -  press F8 to resume", "#ffaa00")
         elif new_state in ("RUNNING_PLAYER_WINDOW", "RUNNING_DARK_WINDOW"):
             status_text_cb("Running", "#44ff88")
         elif new_state == "IDLE":
-            status_text_cb("Armed  —  press F8 to start", "#ffaa00")
+            status_text_cb("Armed  -  press F8 to start", "#ffaa00")
 
     def _on_reset(self, data):
         if self._ctrl.overlay:

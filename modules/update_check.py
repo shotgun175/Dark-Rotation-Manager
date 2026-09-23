@@ -4,7 +4,7 @@ update_check.py - Non-blocking "update available" check.
 On launch the app compares its own __version__ against the latest GitHub
 release (unauthenticated GitHub REST API) on a daemon thread, so the UI is
 never blocked. On any network or parse error it logs a warning and does
-nothing. It never downloads or self-updates — the onefile build is unsigned.
+nothing. It never downloads or self-updates; the onefile build is unsigned.
 """
 
 import json

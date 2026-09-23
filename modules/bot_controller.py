@@ -1,7 +1,7 @@
 """
 bot_controller.py - Owns the runtime lifecycle of every bot subsystem.
 
-ConfigApp delegates start/stop/apply/volume here so the QMainWindow stays
+ConfigApp delegates start/stop here so the QMainWindow stays
 focused on UI concerns.
 """
 
@@ -18,9 +18,8 @@ logger = logging.getLogger(__name__)
 
 class BotController:
     def __init__(self, on_engine_event):
-        """on_engine_event(event_type, data) — called from engine bg thread."""
+        """on_engine_event(event_type, data): called from engine bg thread."""
         self._on_engine_event = on_engine_event
-        self._last_confirm_source = "hotkey"
 
         self.engine: RotationEngine | None = None
         self.hotkeys: HotkeyManager | None = None
@@ -104,7 +103,6 @@ class BotController:
     def _hotkey_confirm(self):
         if not self.engine:
             return
-        self._last_confirm_source = "hotkey"
         status = self.engine.get_status()
         player = status.get("current_player", "Unknown")
         self.engine.on_dark_detected(player, is_splendid=False)
@@ -123,17 +121,8 @@ class BotController:
     def _on_grenade_detected(self, is_splendid: bool):
         if not self.engine:
             return
-        self._last_confirm_source = "detection"
         status = self.engine.get_status()
         player = status.get("current_player", "Unknown")
         kind = "Splendid Dark" if is_splendid else "Dark"
         logger.info(f"[Detection] Auto-confirmed: {player} ({kind})")
-        self.engine.on_dark_detected(player, is_splendid=is_splendid)
-
-    # ── Used by EventRouter ──────────────────────────────────────────
-    @property
-    def last_confirm_source(self) -> str:
-        return self._last_confirm_source
-
-    def reset_last_confirm_source(self):
-        self._last_confirm_source = "hotkey"
+        self.engine.on_dark_detected(player, is_splendid=is_splendid, source="detection")

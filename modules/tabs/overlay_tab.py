@@ -88,7 +88,7 @@ class OverlayTab(QWidget):
                   det_rel_x=DEFAULT_REGION_REL_X, det_rel_y=DEFAULT_REGION_REL_Y,
                   det_w=DEFAULT_REGION_WIDTH, det_h=DEFAULT_REGION_HEIGHT):
 
-        # Single scrollable column — no competing right panel
+        # Single scrollable column; no competing right panel
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
@@ -105,7 +105,7 @@ class OverlayTab(QWidget):
         pos_and_preview = QHBoxLayout()
         pos_and_preview.setSpacing(16)
 
-        # Controls column: X/Y, W/H, button, hint — matches detection region layout
+        # Controls column: X/Y, W/H, button, hint; matches detection region layout
         pos_col = QVBoxLayout()
         pos_col.setSpacing(6)
 
@@ -161,7 +161,7 @@ class OverlayTab(QWidget):
 
         left.addLayout(pos_and_preview)
 
-        drag_hint = QLabel("Drag the preview window to set position — fields update automatically.")
+        drag_hint = QLabel("Drag the preview window to set position; fields update automatically.")
         drag_hint.setStyleSheet("color: #777; font-size: 14px;")
         left.addWidget(drag_hint)
 
@@ -337,6 +337,6 @@ class OverlayTab(QWidget):
         )
 
     def set_position(self, x: int, y: int):
-        """Called when overlay window is dragged — updates X/Y spinboxes."""
+        """Called when overlay window is dragged; updates X/Y spinboxes."""
         self._x.setValue(x)
         self._y.setValue(y)

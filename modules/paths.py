@@ -32,7 +32,7 @@ def get_base_dir() -> str:
         if os.path.basename(exe_dir).lower() == "dist":
             return os.path.dirname(exe_dir)
         return exe_dir
-    # __file__ is .../modules/paths.py — go up two levels
+    # __file__ is .../modules/paths.py; go up two levels
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -73,7 +73,7 @@ def atomic_write_text(path: str, text: str, encoding: str = "utf-8") -> None:
     """Write text to path atomically.
 
     Writes to a temp file in the same directory, flushes + fsyncs it, then
-    os.replace()s it onto the target — an atomic rename on both Windows and
+    os.replace()s it onto the target, an atomic rename on both Windows and
     POSIX. A crash mid-write leaves the original file intact rather than
     truncated. The temp file is removed if the replace never happens.
     """

@@ -42,7 +42,7 @@ BUTTON_NEUTRAL = (
     "padding: 4px 10px; font-family: Consolas; font-size: 14px;"
 )
 
-# Bottom-bar Launch / Stop button — toggles green ↔ red on bot start/stop.
+# Bottom-bar Launch / Stop button; toggles green ↔ red on bot start/stop.
 BUTTON_LAUNCH_GREEN = (
     "background: #1a4a1a; color: #44ff88; border: none; "
     "padding: 5px 16px; font-family: Consolas; font-size: 14px; font-weight: bold;"
@@ -76,7 +76,7 @@ CHECKBOX_GOLD = (
     "QCheckBox::indicator:hover { border-color: #ffd700; }"
 )
 
-# Cue-row checkbox — slightly smaller indicator, with disabled variants
+# Cue-row checkbox: slightly smaller indicator, with disabled variants
 # applied when the master "Enable audio cues" toggle is off.
 CHECKBOX_CUE_GOLD = (
     "QCheckBox { color: #ccc; font-size: 14px; font-family: Consolas; border: none; background: transparent; }"

@@ -14,7 +14,7 @@ overlay and configurable hotkeys. Confirms throws manually via hotkey.
 - Auto-skips players whose grenade is still on cooldown
 - Tracks per-player throw count; stops the rotation when everyone hits the cap
 - Configurable hotkeys (works while Lost Ark is in focus)
-- PyQt5 GUI for editing roster, rotation settings, hotkeys, and overlay — most changes apply live while the bot is running (turning detection or audio on/off mid-run needs a bot restart; the status bar tells you when)
+- PyQt5 GUI for editing roster, rotation settings, hotkeys, and overlay; changes take effect the next time you Launch
 - Overlay position saves automatically when dragged; restores on next launch
 - GUI window position also saves and restores on next launch
 - Optional OpenCV auto-detection: scans boss debuff bar for Dark / Splendid Dark Grenade icon and auto-confirms with correct timer (20s / 25s)
@@ -29,7 +29,7 @@ overlay and configurable hotkeys. Confirms throws manually via hotkey.
 ## Requirements
 
 - Windows 10 or 11
-- Python 3.11+ — https://www.python.org/downloads/
+- Python 3.11+: https://www.python.org/downloads/
 
 ---
 
@@ -74,27 +74,27 @@ Rebind any key in the GUI under the **Hotkeys** tab, or directly in `config.yaml
 
 ## How it works
 
-1. Click **▶ Launch** — the GUI hides, the overlay appears, and audio clips are pre-rendered in the background
-2. Press **F8** when you're ready — the rotation starts and the first player is announced
-3. **Phase 1 — Player window (20 s):**
+1. Click **▶ Launch**: the GUI hides, the overlay appears, and audio clips are pre-rendered in the background
+2. Press **F8** when you're ready: the rotation starts and the first player is announced
+3. **Phase 1 - Player window (20 s):**
    - Press **F9** when the player throws their dark grenade
    - If no confirm within 20 s, the bot fires a miss event automatically
-4. **Phase 2 — Dark buff countdown:**
+4. **Phase 2 - Dark buff countdown:**
    - After a confirm, the buff timer runs (20 s normal / 25 s splendid)
    - A warning fires near the end, naming the next player
    - When the buff expires, the next player's window begins
-5. Press **F10** if a player misses — counts the miss and advances to next player
+5. Press **F10** if a player misses: counts the miss and advances to next player
 6. Players on cooldown are skipped automatically
 7. Once every player hits `max_throws_per_run`, the rotation ends
-8. **Pause / Resume — F8 (while running):** freezes the overlay and stops the timer. On resume, the bot scans for an active dark grenade — if found, restarts the buff countdown; if not, advances to the next player
-9. **Reset — F11:** clears all throw counts, returns to player 1, and returns to the armed state. Press **F8** to start again. The overlay stays visible; a TTS cue confirms the reset
-10. **Stop — overlay ■ button:** tears down the bot entirely and restores the GUI. Alt+F4 on the running overlay does the same
+8. **Pause / Resume - F8 (while running):** freezes the overlay and stops the timer. On resume, the bot scans for an active dark grenade: if found, restarts the buff countdown; if not, advances to the next player
+9. **Reset - F11:** clears all throw counts, returns to player 1, and returns to the armed state. Press **F8** to start again. The overlay stays visible; a TTS cue confirms the reset
+10. **Stop - overlay ■ button:** tears down the bot entirely and restores the GUI. Alt+F4 on the running overlay does the same
 
 ---
 
 ## Assumptions, scope, and open questions
 
-This tool watches the screen and drives timers and hotkeys — it does **not** read
+This tool watches the screen and drives timers and hotkeys; it does **not** read
 game memory or any Lost Ark API. The points below are what it assumes about your
 setup, verified against the current code.
 
@@ -110,7 +110,7 @@ setup, verified against the current code.
 - **Window position and monitor are handled automatically.** The detection region
   is anchored to the Lost Ark window's client top-left and resolved to absolute
   screen coordinates, so the game can sit on any monitor, anywhere, windowed or
-  borderless — detection follows it.
+  borderless; detection follows it.
 - **The detection region and icon templates assume a fixed resolution / UI scale.**
   The default scan region is a pixel rectangle offset from the window's top-left
   (`rel_x: 875, rel_y: 325, width: 456, height: 46`), and the bundled debuff
@@ -130,7 +130,7 @@ setup, verified against the current code.
   grab). Borderless windowed is the safe choice; exclusive-fullscreen capture
   behaviour has not been verified.
 - **Multiple game windows.** If more than one visible window matches `LOST ARK`,
-  the first one Windows enumerates is used — multi-client setups are unhandled.
+  the first one Windows enumerates is used; multi-client setups are unhandled.
 - **Reference resolution.** The default region (and the GUI's region preview)
   use a 2560×1440 reference frame (`CALIBRATION_WIDTH/HEIGHT` in
   `modules/detection.py`). On other resolutions or UI scales, treat the
@@ -142,7 +142,7 @@ setup, verified against the current code.
   exists; it never downloads or replaces the executable (the onefile build is
   unsigned).
 - **No game integration.** No memory reading, packet inspection, or input
-  automation into the game — it only reads the debuff icon from the screen and
+  automation into the game; it only reads the debuff icon from the screen and
   listens for your hotkeys.
 - **Windows only.** Window discovery and global hotkeys rely on Windows APIs.
 
@@ -154,10 +154,12 @@ setup, verified against the current code.
 ## Config reference
 
 The complete, shipped defaults live in
-[`config.example.yaml`](config.example.yaml) — first run copies it to
-`config.yaml`. You can edit `config.yaml` by hand while the app is open: Apply
+[`config.example.yaml`](config.example.yaml); first run copies it to
+`config.yaml`. Edit `config.yaml` by hand only while the bot is stopped. Apply
 and closing the app re-read the file before saving, so your values are kept, but
-any comments in it are removed on every save. The non-obvious keys:
+dragging the overlay while the bot runs saves the copy read at Launch and undoes
+hand edits made since then. Any comments in the file are removed on every save.
+The non-obvious keys:
 
 ```yaml
 rotation:
@@ -206,9 +208,9 @@ pip install pyinstaller
 pyinstaller --clean "Dark Rotation Manager.spec"
 ```
 
-Output: `dist/Dark Rotation Manager.exe` — run it directly from the `dist/` folder. Re-run this command any time you update the code.
+Output: `dist/Dark Rotation Manager.exe`; run it directly from the `dist/` folder. Re-run this command any time you update the code.
 Always build from the `.spec` file (it bundles the example config, default
-roster, detection templates, icon, and chime into the exe) — a raw
+roster, detection templates, icon, and chime into the exe); a raw
 `pyinstaller gui.py` build ships without them and breaks on first run.
 
 ---
@@ -216,7 +218,7 @@ roster, detection templates, icon, and chime into the exe) — a raw
 ## Multiple Rosters
 
 Create additional `.yaml` files in the `rosters/` folder using the same format.
-Change `active_roster` in `config.yaml` (or via the GUI) to switch between them.
+Change `active_roster` in `config.yaml` to switch between them.
 
 ---
 
@@ -227,6 +229,13 @@ MIT
 ---
 
 ## Changelog
+
+### v1.2.6 - Smaller download and text fixes
+- **Improved:** the `.exe` download is about 23 MB smaller and unpacks less to your Windows temp folder on each launch. It no longer bundles video and OpenGL files the app never uses; nothing about how it works changes
+- **Fix:** in rare timing, a late F9 right after an auto-detected Dark could play "Dark confirmed" instead of the chime (or an auto-detect right after F9 could play the chime). Each confirm now always plays its own cue
+- **Text:** long dashes in the app and README are now plain hyphens, colons or semicolons ("Armed  -  press F8 to start", the Audio tab cue hints, the Hotkeys and Overlay tab hints). No wording changes
+- **Docs:** the README no longer promises live Apply while the bot runs or a GUI roster switcher (neither exists); settings take effect the next time you Launch, and the config reference now says to edit `config.yaml` by hand only while the bot is stopped
+- **Logs:** a voice line download that times out now says so in the log ("timed out after 30 seconds") instead of an empty reason
 
 ### v1.2.5 - Save, voice and game window fixes
 - **Fix:** saving settings no longer shows a crash dialog when another program (antivirus, OneDrive or Dropbox sync, an editor) briefly has `config.yaml` or a roster open; the save waits a moment and tries again
@@ -249,29 +258,29 @@ MIT
 - **Security:** release builds now ship aiohttp 3.14.3 (used by the text-to-speech voice), which includes a security fix. No change to how the app works
 
 ### v1.2.3 - Reliability and audit fixes
-- **New: crash reporting.** Unhandled errors are now written to the `logs/` folder (with a dialog pointing at the log) instead of silently killing the app — previously the no-console exe died with no trace
+- **New: crash reporting.** Unhandled errors are now written to the `logs/` folder (with a dialog pointing at the log) instead of silently killing the app; previously the no-console exe died with no trace
 - **Fix:** hand-edited rosters/configs with accented player names no longer break on load (files are read as UTF-8); an empty `config.yaml` or roster file no longer crashes startup
 - **Fix:** rebinding a hotkey no longer leaves the new key registered after Stop (which made F8 double-fire after the next Launch)
-- **Fix:** rotation state changes are now thread-safe — a confirm landing exactly at the auto-miss deadline can no longer double-advance the rotation
+- **Fix:** rotation state changes are now thread-safe: a confirm landing exactly at the auto-miss deadline can no longer double-advance the rotation
 - **Fix:** the Test Voice button no longer freezes the window while rendering an uncached clip, and no longer leaves temp folders behind
-- **Improved:** clicking Apply while the bot is running now tells you in the status bar when a detection/audio toggle needs a bot restart to take effect
+- **Improved:** settings apply on the next Launch; the unreachable live-apply paths were removed
 - **Releases:** every release build now runs the test suite first, verifies the tag matches the app version, installs pinned dependency versions for reproducible builds, and publishes a SHA-256 checksum next to the exe
 - **Docs:** README build instructions now use the `.spec` file (the raw command produced a broken exe); config reference synced with the shipped example; MIT LICENSE file added
 
 ### v1.2.2 - Clickable update banner
-- **Improved:** the "Update available" notice in the bottom bar is now a clickable link — clicking it opens that release's GitHub page (where the `.exe` download lives) in your browser, instead of only telling you an update exists
+- **Improved:** the "Update available" notice in the bottom bar is now a clickable link; clicking it opens that release's GitHub page (where the `.exe` download lives) in your browser, instead of only telling you an update exists
 
 ### v1.2.1 - Lost Ark Tools hub link
-- **New:** a "Part of Lost Ark Tools" link now sits in the bottom bar next to the version number — click it to open the Lost Ark Tools hub (shotgun175.github.io) in your browser for quick access to the rest of the toolset
+- **New:** a "Part of Lost Ark Tools" link now sits in the bottom bar next to the version number; click it to open the Lost Ark Tools hub (shotgun175.github.io) in your browser for quick access to the rest of the toolset
 - **Under the hood:** the GitHub build/release pipeline was moved to the newer Node 24 runner ahead of GitHub's June 2026 retirement of the old one. No effect on the app itself
 
 ### v1.2.0 - Update notifications + crash-safe saves
 - **New: update check.** On launch the app quietly checks GitHub for a newer release and, if one exists, shows a small "Update available: vX.Y.Z" note in the bottom-right of the GUI. It never downloads or installs anything itself, and if you're offline it simply does nothing
-- **Reliability: crash-safe saves.** Your `config.yaml` and roster files are now written atomically — if the app or PC dies mid-save, the existing file is left intact instead of being corrupted. Nothing changes about how saving works day-to-day
+- **Reliability: crash-safe saves.** Your `config.yaml` and roster files are now written atomically: if the app or PC dies mid-save, the existing file is left intact instead of being corrupted. Nothing changes about how saving works day-to-day
 - **Under the hood:** added an automated test suite for the rotation timing and state logic, plus a CI check that runs it on every change. No effect on the app itself
 
 ### v1.1.3 - Diagnostic log file
-- **New:** the app now writes a rotating log file to a `logs/` folder next to the `.exe`. Since the released build runs with no console window, this is where startup errors, detection problems, and audio failures get recorded — attach it when reporting an issue
+- **New:** the app now writes a rotating log file to a `logs/` folder next to the `.exe`. Since the released build runs with no console window, this is where startup errors, detection problems, and audio failures get recorded; attach it when reporting an issue
 - Older builds sent those messages to a console that the packaged `.exe` threw away, so they were invisible. Nothing about how the app runs day-to-day changes
 
 ### v1.1.2 - Standalone .exe + version label
@@ -280,20 +289,20 @@ MIT
 - First-run behavior unchanged: a fresh `config.yaml` and `rosters/example.yaml` are created next to the `.exe` on the first launch
 
 ### v1.1.1 - Auto-detect on by default
-- **Default change:** "Enable grenade auto-detect" is now on by default for fresh installs. Existing `config.yaml` files are not modified — your current setting is preserved
+- **Default change:** "Enable grenade auto-detect" is now on by default for fresh installs. Existing `config.yaml` files are not modified; your current setting is preserved
 - Detection still no-ops gracefully if OpenCV templates are missing or Lost Ark isn't running, so the default-on is safe
 
 ### v1.1.0 - Cleanup audit, live volume, phase-aware overlay, tunable miss_seconds
-- **New: live volume slider** — drag the Audio tab volume slider while the bot is running for instant changes (no Apply needed)
+- **New: live volume slider** - drag the Audio tab volume slider while the bot is running for instant changes (no Apply needed)
 - **New: overlay current-slot label** now reads "DARK NOW" during the buff window and "UP NEXT" during the player window, instead of always saying "DARK NOW"
-- **New: tunable `miss_seconds`** in the Rotation tab — controls how long a player has to throw before auto-miss fires (was hard-coded to 20s)
+- **New: tunable `miss_seconds`** in the Rotation tab: controls how long a player has to throw before auto-miss fires (was hard-coded to 20s)
 - **Polish:** overlay state header now reads "▶ DARK ROTATION RUNNING" / "● ARMED" / "⏸ PAUSED" with matching colors, instead of the raw internal state name. Confirm/missed status messages use ✓/✗ instead of OK/X prefixes.
 - **Cleanup:** removed dead engine, roster, and audio API; centralized BASE_DIR and Lost Ark window-finder helpers; collapsed the engine state machine into explicit phase substates; split the GUI shell from runtime lifecycle (`BotController`) and event routing (`EventRouter`)
-- **Repo:** `config.yaml` and `rosters/<your_roster>.yaml` are now gitignored — first run copies from `config.example.yaml` and `rosters/example.yaml`
+- **Repo:** `config.yaml` and `rosters/<your_roster>.yaml` are now gitignored; first run copies from `config.example.yaml` and `rosters/example.yaml`
 - **Repo:** `Dark Rotation Manager.spec` is now tracked (was previously gitignored despite being needed for builds)
 
 ### v1.0.14 - Pause, reset, and path fixes
-- **F8 pause / resume:** pressing F8 while running now pauses the rotation (overlay shows ⏸ PAUSED, bar freezes). Press F8 again to resume — the bot scans for an active dark grenade and either restarts the buff countdown or advances to the next player
+- **F8 pause / resume:** pressing F8 while running now pauses the rotation (overlay shows ⏸ PAUSED, bar freezes). Press F8 again to resume; the bot scans for an active dark grenade and either restarts the buff countdown or advances to the next player
 - **F11 reset:** clears all throw counts and returns to player 1 in the armed-but-not-started state without closing the overlay. TTS announces "Dark rotation reset" as confirmation
 - **Overlay stop button** is now the only way to fully shut down and restore the GUI
 - **Audio:** new "Dark rotation reset" TTS cue (toggleable in Audio tab)

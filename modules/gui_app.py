@@ -212,7 +212,7 @@ class ConfigApp(QMainWindow):
         return bar
 
     def _show_update_available(self, tag: str):
-        """Slot for _update_available_signal — reveal the clickable banner.
+        """Slot for _update_available_signal: reveal the clickable banner.
 
         The banner links to that release's GitHub page (where the .exe asset
         lives); the click is handled by the label via setOpenExternalLinks.
@@ -320,7 +320,7 @@ class ConfigApp(QMainWindow):
 
         self._launch_btn.setText("■  Stop")
         self._launch_btn.setStyleSheet(BUTTON_LAUNCH_RED)
-        self._set_status_text("Armed  —  press F8 to start", "#ffaa00")
+        self._set_status_text("Armed  -  press F8 to start", "#ffaa00")
         self.hide()
 
     def _stop_bot(self):
@@ -330,7 +330,7 @@ class ConfigApp(QMainWindow):
         self._set_status_text("Bot not running", "#999")
 
     def _handle_overlay_stop(self):
-        """Called from the overlay's stop button — tears down the bot and shows the GUI."""
+        """Called from the overlay's stop button: tears down the bot and shows the GUI."""
         self._stop_bot()
         self.show()
         self.raise_()
@@ -341,7 +341,7 @@ class ConfigApp(QMainWindow):
     # ------------------------------------------------------------------
 
     def _on_engine_event(self, event_type, data: dict):
-        """Called from engine background thread — marshal to main thread via signal."""
+        """Called from engine background thread; marshal to main thread via signal."""
         self._engine_event_signal.emit(event_type, data)
 
     def _on_engine_event_ui(self, event_type, data: dict):
@@ -375,7 +375,7 @@ class ConfigApp(QMainWindow):
         self._region_selector.show()
 
     def _on_region_selected(self, rel_x: int, rel_y: int, w: int, h: int):
-        """Fills spinboxes with drawn region — user still clicks Apply to save."""
+        """Fills spinboxes with drawn region; user still clicks Apply to save."""
         self._overlay_tab.set_detection_region(rel_x, rel_y, w, h)
         logger.info(f"[Detection] Region drawn: rel_x={rel_x} rel_y={rel_y} w={w} h={h}")
 
@@ -384,7 +384,7 @@ class ConfigApp(QMainWindow):
     # ------------------------------------------------------------------
 
     def _on_overlay_moved(self, x: int, y: int):
-        """Called when user drags the live overlay — persists position immediately."""
+        """Called when user drags the live overlay; persists position immediately."""
         self._config.setdefault("overlay", {}).setdefault("position", {})
         self._config["overlay"]["position"] = {"x": x, "y": y}
         self._save_config()

@@ -3,12 +3,12 @@ engine.py - Core rotation logic, timers, and state management
 
 Two-phase timing model
 ----------------------
-Phase 1 — Player window (RotationState.RUNNING_PLAYER_WINDOW):
+Phase 1 - Player window (RotationState.RUNNING_PLAYER_WINDOW):
     A player has been announced. They have 20 seconds (default;
     configurable via the miss_seconds setting) to throw before being
     called missed and the next player announced.
 
-Phase 2 — Dark window (RotationState.RUNNING_DARK_WINDOW):
+Phase 2 - Dark window (RotationState.RUNNING_DARK_WINDOW):
     A dark grenade is active. The buff countdown runs for 20-25 s.
     No new player is announced until it expires, at which point the
     next player's Phase-1 window begins.
@@ -93,7 +93,7 @@ class RotationEngine:
         self._dark_warned: bool = False   # warning callout during dark countdown
         self._dark_player: str = ""       # who threw the dark (shown on overlay during buff)
 
-        # Pause state — frozen display values
+        # Pause state: frozen display values
         self._paused_remaining: float = 0.0
         self._paused_duration: float = float(DARK_BUFF_SECONDS)
 
@@ -155,13 +155,13 @@ class RotationEngine:
         if self.state != RotationState.PAUSED:
             return
         if dark_detected:
-            # Dark is still active in-game — restart its countdown from now
+            # Dark is still active in-game; restart its countdown from now
             self._dark_start = time.time()
             self._dark_duration = _buff_duration(is_splendid)
             self._dark_warned = False
             self._set_state(RotationState.RUNNING_DARK_WINDOW)
         else:
-            # No dark active — advance to next player and start their window
+            # No dark active; advance to next player and start their window
             self._advance()
             self._begin_player_window()
         self._stop_event.clear()
@@ -188,14 +188,15 @@ class RotationEngine:
         logger.info("[Engine] Rotation reset to player 1.")
 
     @_locked
-    def on_dark_detected(self, player: str, is_splendid: bool):
+    def on_dark_detected(self, player: str, is_splendid: bool, source: str = "hotkey"):
         """Called when a dark grenade throw is confirmed (via hotkey or detection)."""
         if self.state != RotationState.RUNNING_PLAYER_WINDOW:
             return
 
         duration = _buff_duration(is_splendid)
         kind = "Splendid Dark" if is_splendid else "Dark"
-        self.on_event(EngineEvent.CONFIRMED, {"player": player, "kind": kind, "duration": duration})
+        self.on_event(EngineEvent.CONFIRMED,
+                      {"player": player, "kind": kind, "duration": duration, "source": source})
 
         count = self._record_throw(player)
         logger.info(f"[Engine] {player} throw {count}/{self.max_throws}")
@@ -212,14 +213,14 @@ class RotationEngine:
 
     @_locked
     def on_dark_missed(self):
-        """Called by F10 — counts the miss against the current player's throw
+        """Called by F10: counts the miss against the current player's throw
         limit, then immediately advances to the next player (no dark countdown)."""
         if self.state != RotationState.RUNNING_PLAYER_WINDOW:
             return
 
         player = self._current_player()
         count = self._record_throw(player)
-        logger.info(f"[Engine] {player} MISSED — throw {count}/{self.max_throws}")
+        logger.info(f"[Engine] {player} MISSED - throw {count}/{self.max_throws}")
 
         self.on_event(EngineEvent.MISSED, {"player": player})
 
@@ -265,7 +266,7 @@ class RotationEngine:
             dark_elapsed = time.time() - self._dark_start
             dark_remaining = self._dark_duration - dark_elapsed
 
-            # Warning callout before dark expires — resolve who will actually
+            # Warning callout before dark expires; resolve who will actually
             # be announced (skipping cooldown players) so the TTS is accurate.
             if not self._dark_warned and dark_remaining <= self.warn_secs:
                 self._dark_warned = True
@@ -319,12 +320,12 @@ class RotationEngine:
             player = self._current_player()
             if not self._is_on_cooldown(player):
                 break
-            logger.debug(f"[Engine] {player} is on cooldown — skipping.")
+            logger.debug(f"[Engine] {player} is on cooldown - skipping.")
             self.on_event(EngineEvent.COOLDOWN_SKIP, {"player": player})
             self._advance()
             checked += 1
         else:
-            logger.debug("[Engine] All active players on cooldown — announcing anyway.")
+            logger.debug("[Engine] All active players on cooldown - announcing anyway.")
 
         self._player_window_start = time.time()
         self._miss_warned = False
@@ -343,7 +344,7 @@ class RotationEngine:
 
     def _next_non_cooldown_player(self) -> str:
         """Return the first active, non-exhausted, non-cooldown player
-        starting from the current index — mirrors what _begin_player_window
+        starting from the current index; mirrors what _begin_player_window
         will actually announce."""
         n = len(self.players)
         for i in range(n):
