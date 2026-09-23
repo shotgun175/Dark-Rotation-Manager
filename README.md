@@ -223,6 +223,17 @@ MIT
 
 ## Changelog
 
+### v1.2.4 - Hotkey and launch reliability fixes
+- **Fix:** hotkeys now work while you hold another key. Pressing F9 while holding a skill key, Shift or Space used to be silently ignored (and the player got auto-missed); it now registers. A key whose release Windows never reported (for example after Win+L) no longer blocks every hotkey until you press that key again
+- **Fix:** holding a hotkey fires it once per press. Holding F10 used to record a miss on every key repeat and skip through the roster
+- **Fix:** if one hotkey action hits an error, it is written to the log and the other hotkeys keep working, instead of all of them going dead until the app is restarted
+- **Heads-up (hotkey behavior):** since hotkeys no longer care about other held keys, Shift+F9 (or any modifier plus F9) also triggers F9. If you hand-wrote a combo in `config.yaml` that ends in the same key as a single-key binding (for example `ctrl+f9` alongside `f9`), pressing the combo now fires both. And if Windows loses the release of a hotkey (for example you let go of it while an admin window has focus), the next press of that key is ignored once
+- **Fix:** an overlay saved on a monitor that is no longer connected now reappears near the top-left of your main screen, instead of staying off-screen with no way to stop the bot. Your saved position is left alone until you drag the overlay again
+- **Fix:** closing the running overlay with Alt+F4 now stops the bot and brings the main window back, like the overlay's ■ stop button, instead of leaving the bot running with no window to stop it from
+- **Fix:** a roster with `players:` but no names, or an empty section in `config.yaml` (such as `rotation:` with nothing under it), no longer crashes the app on startup
+- **Fix:** if Launch fails (for example because of an unrecognized key name typed into `config.yaml`), the bottom bar now shows "Launch failed" and everything that had started is shut down again, instead of a crash dialog with the overlay half-started
+- **Security:** release builds now ship aiohttp 3.14.3 (used by the text-to-speech voice), which includes a security fix. No change to how the app works
+
 ### v1.2.3 - Reliability and audit fixes
 - **New: crash reporting.** Unhandled errors are now written to the `logs/` folder (with a dialog pointing at the log) instead of silently killing the app — previously the no-console exe died with no trace
 - **Fix:** hand-edited rosters/configs with accented player names no longer break on load (files are read as UTF-8); an empty `config.yaml` or roster file no longer crashes startup
