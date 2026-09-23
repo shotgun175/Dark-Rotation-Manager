@@ -35,20 +35,32 @@ overlay and configurable hotkeys. Confirms throws manually via hotkey.
 
 ## Setup
 
-### 1. Clone the repo
+### Download (no Python needed)
+
+1. From the [latest release](https://github.com/shotgun175/Dark-Rotation-Manager/releases/latest),
+   download `Dark.Rotation.Manager.exe` (and `Dark.Rotation.Manager.exe.sha256` to verify it) into a
+   folder of its own. On first launch the app creates `config.yaml`, `rosters/` and `logs/` beside the exe.
+2. Optional: verify the download in PowerShell. The hash printed must match the first field of the `.sha256` file:
+   `(Get-FileHash .\Dark.Rotation.Manager.exe -Algorithm SHA256).Hash.ToLower()`
+3. Double-click the exe. It is not code-signed, so Windows SmartScreen may warn on first run:
+   click **More info**, then **Run anyway**.
+
+### Run from source
+
+#### 1. Clone the repo
 
 ```bash
 git clone https://github.com/shotgun175/Dark-Rotation-Manager.git
 cd Dark-Rotation-Manager
 ```
 
-### 2. Install dependencies
+#### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Run the GUI
+#### 3. Run the GUI
 
 ```bash
 python gui.py
