@@ -6,12 +6,16 @@ import threading
 
 import pytest
 
+from modules import log_setup
 from modules.log_setup import install_excepthooks
 
 
 @pytest.fixture
-def capture_hooks(caplog):
+def capture_hooks(caplog, monkeypatch):
     """Install the hooks, restore the originals afterwards."""
+    # A QApplication left alive by an earlier test would make the real dialog
+    # open QMessageBox.critical, which crashes the offscreen platform.
+    monkeypatch.setattr(log_setup, "_show_crash_dialog", lambda _path: None)
     orig_sys_hook = sys.excepthook
     orig_thread_hook = threading.excepthook
     install_excepthooks("C:/fake/logs/app.log")

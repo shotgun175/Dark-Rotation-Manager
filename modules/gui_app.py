@@ -80,6 +80,23 @@ class ConfigApp(QMainWindow):
                 cfg[key] = {}
         return cfg
 
+    def _reload_config(self):
+        """Re-read config.yaml before a save so keys hand-edited while the app
+        is open survive (comments are still dropped by yaml.dump). Keeps the
+        in-memory copy if the file cannot be read, is empty, or is not a mapping."""
+        try:
+            cfg = self._load_config()
+        except Exception as e:
+            logger.warning(f"[Config] Re-read failed, keeping in-memory copy: {e}")
+            return
+        if not isinstance(cfg, dict):
+            logger.warning("[Config] config.yaml is not a mapping, keeping in-memory copy")
+            return
+        if not cfg:
+            logger.warning("[Config] config.yaml is empty, keeping in-memory copy")
+            return
+        self._config = cfg
+
     def _save_config(self):
         atomic_write_text(
             self._config_path,
@@ -120,6 +137,10 @@ class ConfigApp(QMainWindow):
         roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
         self._roster_mgr = RosterManager(os.path.join(BASE_DIR, "rosters"))
         players = self._roster_mgr.load(roster_file)
+        # Apply saves the tab's players back to this roster; Launch and hand
+        # edits of active_roster do not refresh the tab.
+        self._tab_roster_file = roster_file
+        self._tab_roster_name = self._roster_mgr.current_roster_name
 
         self._roster_tab   = RosterTab(players)
         self._rotation_tab = RotationTab(self._config)
@@ -240,6 +261,8 @@ class ConfigApp(QMainWindow):
             self._set_status_text("Fix duplicate hotkeys before applying", "#ff4444")
             return
 
+        self._reload_config()
+
         rot_vals = self._rotation_tab.get_values()
         ov_vals  = self._overlay_tab.get_values()
         hk_vals  = self._hotkeys_tab.get_bindings()
@@ -255,12 +278,7 @@ class ConfigApp(QMainWindow):
 
         self._save_config()
 
-        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
-        self._roster_mgr.save(
-            roster_file,
-            self._roster_mgr.current_roster_name or roster_file,
-            players,
-        )
+        self._roster_mgr.save(self._tab_roster_file, self._tab_roster_name, players)
 
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")
@@ -406,6 +424,7 @@ class ConfigApp(QMainWindow):
             self._test_audio.shutdown()
         if self._preview_overlay:
             self._preview_overlay.close()
+        self._reload_config()
         p = self.pos()
         self._config.setdefault("gui", {})["position"] = {"x": p.x(), "y": p.y()}
         self._save_config()

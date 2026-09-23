@@ -101,9 +101,12 @@ setup, verified against the current code.
 ### Confirmed assumptions
 
 - **English game client.** The app finds the game by looking for a visible window
-  whose title contains `LOST ARK` (case-insensitive) — `LOSTARK_WINDOW_TITLE` in
-  `modules/paths.py`. A localized client with a translated window title won't be
-  found, so auto-detection and window-relative positioning won't work on it.
+  whose title starts with `LOST ARK` in capitals (the client's title reads like
+  `LOST ARK (64-bit, DX11) v.3.23.1.1`), set by `LOSTARK_WINDOW_TITLE` in
+  `modules/paths.py`. Other windows named after the game, such as a browser tab,
+  an editor or a folder called "Lost Ark", are ignored. A localized client with a
+  translated window title won't be found, so auto-detection and window-relative
+  positioning won't work on it.
 - **Window position and monitor are handled automatically.** The detection region
   is anchored to the Lost Ark window's client top-left and resolved to absolute
   screen coordinates, so the game can sit on any monitor, anywhere, windowed or
@@ -152,7 +155,9 @@ setup, verified against the current code.
 
 The complete, shipped defaults live in
 [`config.example.yaml`](config.example.yaml) — first run copies it to
-`config.yaml`. The non-obvious keys:
+`config.yaml`. You can edit `config.yaml` by hand while the app is open: Apply
+and closing the app re-read the file before saving, so your values are kept, but
+any comments in it are removed on every save. The non-obvious keys:
 
 ```yaml
 rotation:
@@ -222,6 +227,15 @@ MIT
 ---
 
 ## Changelog
+
+### v1.2.5 - Save, voice and game window fixes
+- **Fix:** saving settings no longer shows a crash dialog when another program (antivirus, OneDrive or Dropbox sync, an editor) briefly has `config.yaml` or a roster open; the save waits a moment and tries again
+- **Fix:** values you edit by hand in `config.yaml` while the app is open (such as `detection.threshold` or `scan_interval_ms`) are no longer undone when you click Apply or close the app. Comments in `config.yaml` are still removed when the app saves it
+- **Fix:** a voice line download that stalls (for example a Wi-Fi drop mid-download) now gives up after 30 seconds, instead of muting every voice cue for the rest of the run
+- **Fix:** Stop no longer leaves a `drm_tts_` temp folder behind in your Windows temp folder. A voice cue that is still playing when you press Stop is cut off
+- **Fix:** Reset pressed at the exact moment a player's time runs out now always takes effect, instead of occasionally recording a miss and announcing the next player
+- **Improved:** Test Voice reuses the clip it already made, so repeat clicks play right away without downloading it again
+- **Fix:** the app now finds the game only by its real window title (`LOST ARK (64-bit, DX11) ...`). A browser tab, editor or folder with "Lost Ark" in its name (including the Lost Ark Tools hub the app links to) sitting above the game no longer throws off the detection region or auto-detect
 
 ### v1.2.4 - Hotkey and launch reliability fixes
 - **Fix:** hotkeys now work while you hold another key. Pressing F9 while holding a skill key, Shift or Space used to be silently ignored (and the player got auto-missed); it now registers. A key whose release Windows never reported (for example after Win+L) no longer blocks every hotkey until you press that key again

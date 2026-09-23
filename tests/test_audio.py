@@ -1,7 +1,11 @@
 """Tests for AudioManager temp-dir lifecycle and non-blocking test renders."""
 
+import asyncio
 import os
+import shutil
 import threading
+
+import pytest
 
 from modules import audio
 from modules.audio import AudioManager
@@ -87,4 +91,76 @@ def test_play_test_uses_cache_synchronously(monkeypatch, tmp_path):
         mgr.play_test()
         assert played_on == [threading.current_thread()]
     finally:
+        mgr.shutdown()
+
+
+def test_stalled_render_times_out_and_the_run_still_becomes_ready(monkeypatch, caplog):
+    """A websocket that stalls after the handshake must not mute every cue."""
+    import edge_tts
+
+    class StalledCommunicate:
+        def __init__(self, text, voice_id):
+            pass
+
+        async def save(self, out_path):
+            await asyncio.sleep(5)
+
+    monkeypatch.setattr(edge_tts, "Communicate", StalledCommunicate)
+    monkeypatch.setattr(audio, "RENDER_TIMEOUT_SECONDS", 0.05)
+    mgr = AudioManager({"audio": {"voice": "Andrew"}})
+    try:
+        mgr._render_all([])
+        assert mgr._ready is True
+        assert mgr._cache == {}
+        assert "Render failed" in caplog.text
+    finally:
+        mgr.shutdown()
+
+
+def test_shutdown_removes_temp_dir_after_a_clip_was_played():
+    """pygame keeps the loaded clip open; shutdown must release it first."""
+    if not audio._pygame_ok:
+        pytest.skip("pygame mixer unavailable (no audio device)")
+    mgr = AudioManager({"audio": {"volume": 0}})
+    temp_dir = mgr._temp_dir
+    clip = os.path.join(temp_dir, "clip.mp3")
+    shutil.copy(audio.CHIME_PATH, clip)
+    mgr._play_tts(clip)
+    try:
+        mgr.shutdown()
+        assert not os.path.exists(temp_dir)
+    finally:
+        if os.path.exists(temp_dir):
+            audio.pygame.mixer.music.unload()
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+def test_play_test_caches_its_clip_so_a_second_click_renders_nothing(monkeypatch):
+    import edge_tts
+
+    constructed = []
+
+    class FakeCommunicate:
+        def __init__(self, text, voice_id):
+            constructed.append(text)
+
+        async def save(self, out_path):
+            with open(out_path, "wb") as f:
+                f.write(b"mp3")
+
+    monkeypatch.setattr(edge_tts, "Communicate", FakeCommunicate)
+    mgr = AudioManager({"audio": {"voice": "Andrew"}})
+    monkeypatch.setattr(audio, "_pygame_ok", True)
+    monkeypatch.setattr(mgr, "_play_test_clip", lambda path: None)
+    monkeypatch.setattr(mgr, "_play_tts", lambda path: None)
+    try:
+        mgr.play_test()
+        first = mgr._test_thread
+        first.join(timeout=5)
+        mgr.play_test()
+        assert mgr._test_thread is first  # second click started no thread
+        assert len(constructed) == 1
+    finally:
+        if mgr._test_thread:
+            mgr._test_thread.join(timeout=5)
         mgr.shutdown()
