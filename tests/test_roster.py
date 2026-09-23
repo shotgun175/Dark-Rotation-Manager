@@ -104,3 +104,50 @@ def test_config_load_reads_utf8(tmp_path):
     cfg.write_text("overlay:\n  title: Süß\n", encoding="utf-8")
     fake = SimpleNamespace(_config_path=str(cfg))
     assert ConfigApp._load_config(fake)["overlay"]["title"] == "Süß"
+
+
+def test_load_null_players_and_name_fall_back(tmp_path):
+    # "players:" with every name deleted parses as None, not [].
+    _write(tmp_path / "r.yaml", "name:\nplayers:\n")
+    mgr = RosterManager(str(tmp_path))
+    assert mgr.load("r.yaml") == []
+    assert mgr.current_roster_name == "r.yaml"
+
+
+def test_config_load_null_section_becomes_empty_dict(tmp_path):
+    from types import SimpleNamespace
+
+    from modules.gui_app import ConfigApp
+
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text("rotation:\n", encoding="utf-8")
+    fake = SimpleNamespace(_config_path=str(cfg))
+    loaded = ConfigApp._load_config(fake)
+    assert loaded == {"rotation": {}}
+    assert loaded.get("rotation", {}).get("active_roster", "example.yaml") == "example.yaml"
+
+
+def test_start_bot_failure_stops_controller_and_shows_status():
+    from types import SimpleNamespace
+
+    from modules.gui_app import ConfigApp
+
+    calls = []
+
+    def failing_start(*args, **kwargs):
+        raise ValueError("Key 'bogus' is not mapped to any known key.")
+
+    # No _launch_btn: touching it would raise AttributeError.
+    fake = SimpleNamespace(
+        _load_config=lambda: {},
+        _roster_mgr=SimpleNamespace(load=lambda filename: ["Alice"]),
+        _controller=SimpleNamespace(start=failing_start, stop=lambda: calls.append("stop")),
+        _on_overlay_moved=None,
+        _handle_overlay_stop=None,
+        _set_status_text=lambda text, color: calls.append(text),
+        hide=lambda: calls.append("hide"),
+    )
+    ConfigApp._start_bot(fake)
+    assert calls[0] == "stop"
+    assert calls[1].startswith("Launch failed")
+    assert "hide" not in calls

@@ -72,7 +72,13 @@ class ConfigApp(QMainWindow):
 
     def _load_config(self) -> dict:
         with open(self._config_path, encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
+            cfg = yaml.safe_load(f) or {}
+        # A section left empty ("rotation:") parses as None; treat it as {} in
+        # memory only. Missing sections are not added.
+        for key in ("audio", "detection", "gui", "hotkeys", "overlay", "rotation"):
+            if key in cfg and cfg[key] is None:
+                cfg[key] = {}
+        return cfg
 
     def _save_config(self):
         atomic_write_text(
@@ -277,15 +283,22 @@ class ConfigApp(QMainWindow):
             self._start_bot()
 
     def _start_bot(self):
-        self._config = self._load_config()
-        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
-        players = self._roster_mgr.load(roster_file)
+        try:
+            self._config = self._load_config()
+            roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
+            players = self._roster_mgr.load(roster_file)
 
-        self._controller.start(
-            self._config, players,
-            overlay_save_position_cb=self._on_overlay_moved,
-            overlay_stop_cb=self._handle_overlay_stop,
-        )
+            self._controller.start(
+                self._config, players,
+                overlay_save_position_cb=self._on_overlay_moved,
+                overlay_stop_cb=self._handle_overlay_stop,
+            )
+        except Exception as e:
+            # Roll back whatever started (overlay, hotkeys) and stay on this window.
+            self._controller.stop()
+            logger.exception("[Launch] failed")
+            self._set_status_text(f"Launch failed: {type(e).__name__} (see log)", "#ff4444")
+            return
 
         self._launch_btn.setText("■  Stop")
         self._launch_btn.setStyleSheet(BUTTON_LAUNCH_RED)
