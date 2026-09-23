@@ -21,6 +21,13 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+# DLLs no code path loads: OpenCV's FFmpeg video plugin (the app never opens
+# video), Qt's software OpenGL and the WebGL platform plugin with its Qt Quick
+# chain (this is a QtWidgets app). Dropping them shrinks the onefile exe and
+# what it unpacks to %TEMP% on every launch.
+_UNUSED = ('opencv_videoio_ffmpeg', 'opengl32sw.dll', 'qwebgl.dll', 'Qt5Quick.dll',
+           'Qt5Qml.dll', 'Qt5QmlModels.dll', 'Qt5WebSockets.dll')
+a.binaries = [b for b in a.binaries if not any(u in b[0] for u in _UNUSED)]
 pyz = PYZ(a.pure)
 
 exe = EXE(
