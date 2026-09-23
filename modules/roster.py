@@ -30,8 +30,8 @@ class RosterManager:
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
-        players = [str(p) for p in data.get("players", [])]
-        self.current_roster_name = data.get("name", filename)
+        players = [str(p) for p in data.get("players") or []]
+        self.current_roster_name = data.get("name") or filename
         logger.info(f"[Roster] Loaded '{self.current_roster_name}': {players}")
         return players
 

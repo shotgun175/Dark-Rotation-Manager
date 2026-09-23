@@ -4,7 +4,9 @@ overlay.py - Always-on-top countdown and rotation display (PyQt5)
 
 import logging
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton
+)
 from PyQt5.QtCore import Qt, QTimer, QPoint
 from PyQt5.QtGui import QFont
 
@@ -34,6 +36,10 @@ class OverlayWindow(QWidget):
         pos = config.get("position", {"x": 0, "y": 0})
         self.setGeometry(pos.get("x", 0), pos.get("y", 0),
                          config.get("width", 320), config.get("height", 230))
+        # A position saved on a monitor that is no longer connected: show it on
+        # the primary screen instead (not saved back; the next drag saves one).
+        if QApplication.screenAt(self.geometry().center()) is None:
+            self.move(QApplication.primaryScreen().availableGeometry().topLeft() + QPoint(40, 40))
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setWindowOpacity(config.get("opacity", 0.88))
         self.setStyleSheet(f"background-color: {BG_COLOR};")
@@ -133,6 +139,13 @@ class OverlayWindow(QWidget):
         if self._update_timer is not None:
             self._update_timer.stop()
         self.hide()
+
+    def closeEvent(self, event):
+        # Alt+F4 on the live overlay acts like its stop button; the preview
+        # (no stop_callback) just closes.
+        if self.stop_callback and self.isVisible():
+            self.stop_callback()
+        super().closeEvent(event)
 
     def flash(self, color: str, duration: float = 0.6):
         self.setStyleSheet(f"background-color: {color};")
