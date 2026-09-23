@@ -47,6 +47,10 @@ class EventRouter:
                     audio.play_event(event_type, data)
             else:
                 audio.play_event(event_type, data)
+            if event_type == EngineEvent.ANNOUNCE and audio.render_failures and self._ctrl.overlay:
+                self._ctrl.overlay.set_status_message(
+                    "Voice cues failed to load - check internet (see logs)", "#ff8800")
+                audio.render_failures = 0  # once per run: Launch builds a fresh AudioManager
 
     # ── Per-event handlers ───────────────────────────────────────────
     def _on_state_change(self, data, status_text_cb):
