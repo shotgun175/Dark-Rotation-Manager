@@ -29,5 +29,6 @@ Thumbs.db
 desktop.ini
 
 # Session/scratch artifacts (Superpowers plans, audit reports)
-docs/superpowers/
+docs/
+.playwright-mcp/
 audit-*.md

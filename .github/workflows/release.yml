@@ -8,12 +8,15 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 15
     permissions:
       contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -44,7 +47,7 @@ jobs:
           Get-Content 'dist/Dark Rotation Manager.exe.sha256'
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
           files: |
             dist/Dark Rotation Manager.exe
