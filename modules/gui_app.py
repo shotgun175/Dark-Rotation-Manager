@@ -259,7 +259,7 @@ class ConfigApp(QMainWindow):
     def _apply(self):
         if self._hotkeys_tab.has_conflicts():
             self._set_status_text("Fix duplicate hotkeys before applying", "#ff4444")
-            return
+            return False
 
         self._reload_config()
 
@@ -283,6 +283,7 @@ class ConfigApp(QMainWindow):
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")
         QTimer.singleShot(1200, self._restore_apply_btn)
+        return True
 
     def _restore_apply_btn(self):
         self._apply_btn.setEnabled(True)
@@ -301,6 +302,11 @@ class ConfigApp(QMainWindow):
             self._start_bot()
 
     def _start_bot(self):
+        if not self._apply():
+            return
+        if self._preview_overlay:
+            self._preview_overlay.close()
+            self._preview_overlay = None
         try:
             self._config = self._load_config()
             roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")

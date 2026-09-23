@@ -139,6 +139,8 @@ def test_start_bot_failure_stops_controller_and_shows_status():
 
     # No _launch_btn: touching it would raise AttributeError.
     fake = SimpleNamespace(
+        _apply=lambda: True,
+        _preview_overlay=None,
         _load_config=lambda: {},
         _roster_mgr=SimpleNamespace(load=lambda filename: ["Alice"]),
         _controller=SimpleNamespace(start=failing_start, stop=lambda: calls.append("stop")),

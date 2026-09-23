@@ -10,7 +10,7 @@ import logging
 from modules.engine    import RotationEngine, RotationState
 from modules.overlay   import OverlayWindow
 from modules.hotkeys   import HotkeyManager
-from modules.detection import DetectionEngine
+from modules.detection import DEFAULT_DETECTION_ENABLED, DetectionEngine
 from modules.audio     import AudioManager
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class BotController:
         )
         self.hotkeys.start()
 
-        if config.get("detection", {}).get("enabled", False):
+        if config.get("detection", {}).get("enabled", DEFAULT_DETECTION_ENABLED):
             self.detection = DetectionEngine(
                 config,
                 on_detected=self._on_grenade_detected,

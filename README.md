@@ -54,8 +54,8 @@ pip install -r requirements.txt
 python gui.py
 ```
 
-Edit your roster, hotkeys, and settings from the GUI. Click **Apply** to save,
-then **▶ Launch** to arm the bot (overlay appears, audio pre-renders), then press **F8** to start the rotation.
+Edit your roster, hotkeys, and settings from the GUI. **▶ Launch** saves your changes
+and arms the bot (overlay appears, audio pre-renders), then press **F8** to start the rotation.
 
 ---
 
