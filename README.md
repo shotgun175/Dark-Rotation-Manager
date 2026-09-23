@@ -88,7 +88,7 @@ Rebind any key in the GUI under the **Hotkeys** tab, or directly in `config.yaml
 7. Once every player hits `max_throws_per_run`, the rotation ends
 8. **Pause / Resume — F8 (while running):** freezes the overlay and stops the timer. On resume, the bot scans for an active dark grenade — if found, restarts the buff countdown; if not, advances to the next player
 9. **Reset — F11:** clears all throw counts, returns to player 1, and returns to the armed state. Press **F8** to start again. The overlay stays visible; a TTS cue confirms the reset
-10. **Stop — overlay ■ button:** tears down the bot entirely and restores the GUI
+10. **Stop — overlay ■ button:** tears down the bot entirely and restores the GUI. Alt+F4 on the running overlay does the same
 
 ---
 
@@ -228,7 +228,7 @@ MIT
 - **Fix:** holding a hotkey fires it once per press. Holding F10 used to record a miss on every key repeat and skip through the roster
 - **Fix:** if one hotkey action hits an error, it is written to the log and the other hotkeys keep working, instead of all of them going dead until the app is restarted
 - **Heads-up (hotkey behavior):** since hotkeys no longer care about other held keys, Shift+F9 (or any modifier plus F9) also triggers F9. If you hand-wrote a combo in `config.yaml` that ends in the same key as a single-key binding (for example `ctrl+f9` alongside `f9`), pressing the combo now fires both. And if Windows loses the release of a hotkey (for example you let go of it while an admin window has focus), the next press of that key is ignored once
-- **Fix:** an overlay saved on a monitor that is no longer connected now reappears near the top-left of your main screen, instead of staying off-screen with no way to stop the bot. Your saved position is left alone until you drag the overlay again
+- **Fix:** an overlay saved on a monitor that is no longer connected now reappears near the top-left of your main screen, instead of staying off-screen with no way to stop the bot. Your saved position is left alone until you click or drag the overlay, which saves where it is now
 - **Fix:** closing the running overlay with Alt+F4 now stops the bot and brings the main window back, like the overlay's ■ stop button, instead of leaving the bot running with no window to stop it from
 - **Fix:** a roster with `players:` but no names, or an empty section in `config.yaml` (such as `rotation:` with nothing under it), no longer crashes the app on startup
 - **Fix:** if Launch fails (for example because of an unrecognized key name typed into `config.yaml`), the bottom bar now shows "Launch failed" and everything that had started is shut down again, instead of a crash dialog with the overlay half-started
