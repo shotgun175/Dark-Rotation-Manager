@@ -83,7 +83,7 @@ class ConfigApp(QMainWindow):
     def _reload_config(self):
         """Re-read config.yaml before a save so keys hand-edited while the app
         is open survive (comments are still dropped by yaml.dump). Keeps the
-        in-memory copy if the file cannot be read or is not a mapping."""
+        in-memory copy if the file cannot be read, is empty, or is not a mapping."""
         try:
             cfg = self._load_config()
         except Exception as e:
@@ -91,6 +91,9 @@ class ConfigApp(QMainWindow):
             return
         if not isinstance(cfg, dict):
             logger.warning("[Config] config.yaml is not a mapping, keeping in-memory copy")
+            return
+        if not cfg:
+            logger.warning("[Config] config.yaml is empty, keeping in-memory copy")
             return
         self._config = cfg
 

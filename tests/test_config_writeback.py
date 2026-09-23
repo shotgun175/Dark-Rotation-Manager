@@ -109,3 +109,17 @@ def test_non_dict_reread_keeps_in_memory_copy_and_warns(make_window, caplog):
     assert isinstance(saved, dict)
     assert saved["detection"]["threshold"] == 0.75
     assert any(r.levelno == logging.WARNING for r in caplog.records)
+
+
+@pytest.mark.parametrize("content", ["", "  \n"])
+def test_empty_reread_keeps_in_memory_copy_and_warns(make_window, caplog, content):
+    w, cfg, _ = make_window()
+    cfg.write_text(content, encoding="utf-8")
+
+    with caplog.at_level(logging.WARNING, logger="modules.gui_app"):
+        w.close()
+
+    saved = _read(cfg)
+    assert saved["detection"]["threshold"] == 0.75
+    assert saved["rotation"]["active_roster"] == "example.yaml"
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
