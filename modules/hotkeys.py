@@ -33,6 +33,7 @@ class HotkeyManager:
             "reset":      self.config.get("reset",      "f11"),
         }
 
+        key_actions = {}  # single key -> [(action, handler)], one hook per key
         for action, key in mappings.items():
             fn = self.callbacks.get(action)
             if fn:
@@ -41,20 +42,24 @@ class HotkeyManager:
                     # A key hook fires even while other keys are held, unlike
                     # add_hotkey, which needs the held set to equal the combo.
                     # Its KEY_UP re-arms the action so OS auto-repeat of a held
-                    # key fires it once. One hook_key, not on_press_key plus
-                    # on_release_key: the library keys unhook entries by key
-                    # name, so stop() could only remove one of the pair.
-                    handler = self._guard(action, fn, latch=True)
+                    # key fires it once. One hook_key per key, not on_press_key
+                    # plus on_release_key or one hook per action: the library
+                    # keys unhook entries by key name, so stop() could only
+                    # remove one of two hooks on the same key.
                     self._armed.add(action)
+                    if key not in key_actions:
+                        pairs = key_actions[key] = []
 
-                    def on_key(e, a=action, h=handler):
-                        if e.event_type == keyboard.KEY_UP:
-                            self._armed.add(a)
-                        else:
-                            h()
+                        def on_key(e, pairs=pairs):
+                            for a, h in pairs:
+                                if e.event_type == keyboard.KEY_UP:
+                                    self._armed.add(a)
+                                else:
+                                    h()
 
-                    self._registered.append((keyboard.unhook, keyboard.hook_key(
-                        key, on_key, suppress=False)))
+                        self._registered.append((keyboard.unhook, keyboard.hook_key(
+                            key, on_key, suppress=False)))
+                    key_actions[key].append((action, self._guard(action, fn, latch=True)))
                 else:
                     # Hand-written combos (ctrl+f9, "a, s"): the key hooks reject them.
                     handler = self._guard(action, fn, latch=False)

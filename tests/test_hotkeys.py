@@ -13,7 +13,10 @@ class FakeKeyboard:
     """Mimics the parts of keyboard 0.13.5 that HotkeyManager uses.
 
     Like the real library, hook_key rejects combos with ValueError, and
-    remove_hotkey/unhook raise KeyError for unknown handles.
+    remove_hotkey/unhook raise KeyError for unknown handles. hook_key also
+    files an unhook entry under the key name, so after one hook of a key is
+    removed, unhooking a second hook of that same key raises KeyError and
+    leaves it hooked.
     """
 
     KEY_DOWN = "down"
@@ -22,6 +25,7 @@ class FakeKeyboard:
     def __init__(self):
         self.active = {}  # combo key -> add_hotkey handlers
         self.hooks = []   # (key, callback) handles from hook_key
+        self.names = {}   # key name -> latest hook_key handle
 
     def parse_hotkey(self, key):
         return tuple(tuple(step.split("+")) for step in key.split(", "))
@@ -42,11 +46,13 @@ class FakeKeyboard:
             raise ValueError(f"Key {key!r} is not mapped to any known key.")
         handle = (key, fn)
         self.hooks.append(handle)
+        self.names[key] = handle
         return handle
 
     def unhook(self, handle):
         if handle not in self.hooks:
             raise KeyError(handle)
+        del self.names[handle[0]]
         self.hooks.remove(handle)
 
     def hooked(self):
@@ -120,6 +126,19 @@ def test_stop_survives_a_handle_that_is_already_gone(fake):
     mgr.stop()
     assert fake.hooks == []
     assert fake.active == {}
+
+
+def test_key_bound_to_two_actions_fires_both_and_stop_unhooks_it(fake):
+    calls = []
+    mgr = HotkeyManager(
+        {"confirm": "f9", "missed": "f9"},
+        {"confirm": lambda: calls.append("confirm"), "missed": lambda: calls.append("missed")},
+    )
+    mgr.start()
+    fake.down("f9")
+    assert calls == ["confirm", "missed"]
+    mgr.stop()
+    assert fake.hooks == []
 
 
 def test_held_key_fires_once_per_press(fake):
