@@ -253,10 +253,13 @@ class RotationEngine:
         while not self._stop_event.is_set():
             if self.is_running:
                 self._tick()
-            time.sleep(0.25)
+            self._stop_event.wait(0.25)
 
     @_locked
     def _tick(self):
+        # A Stop or Reset can land between the loop's check and this lock.
+        if not self.is_running:
+            return
         if self.state == RotationState.RUNNING_DARK_WINDOW:
             # ── Phase 2: dark buff is running ──────────────────────────
             dark_elapsed = time.time() - self._dark_start

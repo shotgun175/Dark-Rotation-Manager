@@ -10,7 +10,6 @@ rotation engine.
 
 import logging
 import os
-import time
 import threading
 
 import cv2
@@ -148,7 +147,7 @@ class DetectionEngine:
                         self._scan(sct)
                     except Exception as e:
                         logger.exception(f"[Detection] Scan error: {e}")
-                time.sleep(self.scan_interval)
+                self._stop_event.wait(self.scan_interval)
 
     def _scan(self, sct):
         win_pos = find_lostark_window()

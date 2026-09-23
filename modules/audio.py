@@ -41,6 +41,10 @@ EVENT_TO_CUE = {
     EngineEvent.RESET:             "reset",
 }
 
+# Bound on one clip's render: edge-tts sets no read timeout on its websocket,
+# so a connection that goes dark mid-render would otherwise wait forever.
+RENDER_TIMEOUT_SECONDS = 30
+
 # ------------------------------------------------------------------
 # pygame init (once at module level)
 # ------------------------------------------------------------------
@@ -156,6 +160,7 @@ class AudioManager:
             def _render_and_play():
                 try:
                     asyncio.run(self._async_render("Dark confirmed", voice_id, out))
+                    self._cache[key] = out
                     self._play_test_clip(out)
                 except Exception as e:
                     logger.exception(f"[Audio] Test render failed: {e}")
@@ -177,6 +182,10 @@ class AudioManager:
     def shutdown(self):
         """Clean up temp files. Call on bot stop and app close."""
         try:
+            # pygame keeps the loaded clip open, which blocks deleting it.
+            if _pygame_ok:
+                pygame.mixer.music.stop()
+                pygame.mixer.music.unload()
             shutil.rmtree(self._temp_dir, ignore_errors=True)
         except Exception:
             pass
@@ -232,7 +241,7 @@ class AudioManager:
     async def _async_render(text: str, voice_id: str, out_path: str):
         import edge_tts
         tts = edge_tts.Communicate(text, voice_id)
-        await tts.save(out_path)
+        await asyncio.wait_for(tts.save(out_path), timeout=RENDER_TIMEOUT_SECONDS)
 
     def _play_tts(self, path: str):
         try:

@@ -361,6 +361,19 @@ def test_reset_clears_counts_and_returns_to_idle(make_engine):
     assert events_of(events, EngineEvent.RESET) != []
 
 
+def test_tick_after_reset_past_miss_deadline_stays_idle(make_engine):
+    """A timer tick that saw is_running just before a Reset must not undo it."""
+    eng, clock, events = make_engine(players=["A", "B"])
+    eng.start()
+    clock.advance(21)  # past the 20 s miss deadline, tick not yet run
+    eng.reset()
+    eng._tick()
+    assert eng.state is RotationState.IDLE
+    assert eng.index == 0
+    after_reset = events[[t for t, _ in events].index(EngineEvent.RESET):]
+    assert EngineEvent.MISSED not in [t for t, _ in after_reset]
+
+
 def test_reset_ignored_from_idle(make_engine):
     eng, _clock, events = make_engine(players=["A", "B"])
     eng.reset()
