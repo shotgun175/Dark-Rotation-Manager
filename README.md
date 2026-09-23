@@ -230,6 +230,13 @@ MIT
 
 ## Changelog
 
+### v1.2.6 - Smaller download and text fixes
+- **Improved:** the `.exe` download is about 23 MB smaller and unpacks less to your Windows temp folder on each launch. It no longer bundles video and OpenGL files the app never uses; nothing about how it works changes
+- **Fix:** in rare timing, a late F9 right after an auto-detected Dark could play "Dark confirmed" instead of the chime (or an auto-detect right after F9 could play the chime). Each confirm now always plays its own cue
+- **Text:** long dashes in the app and README are now plain hyphens, colons or semicolons ("Armed  -  press F8 to start", the Audio tab cue hints, the Hotkeys and Overlay tab hints). No wording changes
+- **Docs:** the README no longer promises live Apply while the bot runs or a GUI roster switcher (neither exists); settings take effect the next time you Launch, and the config reference now says to edit `config.yaml` by hand only while the bot is stopped
+- **Logs:** a voice line download that times out now says so in the log ("timed out after 30 seconds") instead of an empty reason
+
 ### v1.2.5 - Save, voice and game window fixes
 - **Fix:** saving settings no longer shows a crash dialog when another program (antivirus, OneDrive or Dropbox sync, an editor) briefly has `config.yaml` or a roster open; the save waits a moment and tries again
 - **Fix:** values you edit by hand in `config.yaml` while the app is open (such as `detection.threshold` or `scan_interval_ms`) are no longer undone when you click Apply or close the app. Comments in `config.yaml` are still removed when the app saves it
