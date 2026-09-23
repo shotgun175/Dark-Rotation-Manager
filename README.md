@@ -242,6 +242,14 @@ MIT
 
 ## Changelog
 
+### v1.2.7 - Launch saves your edits, voice failure notice, keyboard links
+- **Fix:** Launch now saves what the settings window shows first, so a player you just added or a changed max throws is used without clicking Apply. A duplicate hotkey blocks Launch with the same message Apply shows
+- **Fix:** the 'Preview on screen' overlay now closes when you Launch, instead of staying over the game with no way to close it
+- **Fix:** if `config.yaml` has no `detection.enabled` setting, the Overlay tab now shows auto-detect unticked, matching what Launch already did. Configs that set it (including every fresh install) are unchanged
+- **New:** if the voice lines fail to download (no internet, or the voice service rejects the request), the overlay says 'Voice cues failed to load - check internet (see logs)' once per run instead of staying silent
+- **Improved:** the Update available banner and the Lost Ark Tools link in the bottom bar can now be reached with Tab and opened with Enter
+- **Docs:** the README now has download steps for the ready-made `.exe` (no Python needed), including how to verify the download and get past the SmartScreen prompt
+
 ### v1.2.6 - Smaller download and text fixes
 - **Improved:** the `.exe` download is about 23 MB smaller and unpacks less to your Windows temp folder on each launch. It no longer bundles video and OpenGL files the app never uses; nothing about how it works changes
 - **Fix:** in rare timing, a late F9 right after an auto-detected Dark could play "Dark confirmed" instead of the chime (or an auto-detect right after F9 could play the chime). Each confirm now always plays its own cue
