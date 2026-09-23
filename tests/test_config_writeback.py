@@ -76,6 +76,27 @@ def test_apply_saves_players_to_loaded_roster_after_active_roster_hand_edit(make
     # ...and the hand-picked roster stays selected for the next Launch.
     assert _read(cfg)["rotation"]["active_roster"] == "other.yaml"
 
+    # A second Apply still saves to the tab's roster, not the hand-picked one.
+    w._apply()
+
+    assert _read(rosters / "example.yaml")["players"] == tab_players
+    assert _read(rosters / "other.yaml") == {"name": "Other", "players": ["X"]}
+
+
+def test_apply_after_launch_reloads_roster_keeps_tab_roster_file_and_name(make_window):
+    w, cfg, rosters = make_window()
+    (rosters / "other.yaml").write_text(
+        yaml.dump({"name": "Other", "players": ["X"]}), encoding="utf-8"
+    )
+    tab_players = w._roster_tab.get_players()
+    # Launch re-reads active_roster and loads it, but the Roster tab is not refreshed.
+    w._roster_mgr.load("other.yaml")
+
+    w._apply()
+
+    assert _read(rosters / "example.yaml") == {"name": "Example Raid", "players": tab_players}
+    assert _read(rosters / "other.yaml") == {"name": "Other", "players": ["X"]}
+
 
 def test_non_dict_reread_keeps_in_memory_copy_and_warns(make_window, caplog):
     w, cfg, _ = make_window()

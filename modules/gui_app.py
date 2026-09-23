@@ -134,6 +134,10 @@ class ConfigApp(QMainWindow):
         roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
         self._roster_mgr = RosterManager(os.path.join(BASE_DIR, "rosters"))
         players = self._roster_mgr.load(roster_file)
+        # Apply saves the tab's players back to this roster; Launch and hand
+        # edits of active_roster do not refresh the tab.
+        self._tab_roster_file = roster_file
+        self._tab_roster_name = self._roster_mgr.current_roster_name
 
         self._roster_tab   = RosterTab(players)
         self._rotation_tab = RotationTab(self._config)
@@ -254,9 +258,6 @@ class ConfigApp(QMainWindow):
             self._set_status_text("Fix duplicate hotkeys before applying", "#ff4444")
             return
 
-        # Save the tab's players to the roster they were loaded from, even if
-        # active_roster was hand-edited on disk since.
-        roster_file = self._config.get("rotation", {}).get("active_roster", "example.yaml")
         self._reload_config()
 
         rot_vals = self._rotation_tab.get_values()
@@ -274,11 +275,7 @@ class ConfigApp(QMainWindow):
 
         self._save_config()
 
-        self._roster_mgr.save(
-            roster_file,
-            self._roster_mgr.current_roster_name or roster_file,
-            players,
-        )
+        self._roster_mgr.save(self._tab_roster_file, self._tab_roster_name, players)
 
         self._apply_btn.setEnabled(False)
         self._apply_btn.setText("Saved ✓")
