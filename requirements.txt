@@ -5,5 +5,5 @@ opencv-python>=4.8
 pywin32>=306
 mss>=9.0
 pygame>=2.5
-edge-tts>=6.1
+edge-tts>=7.2.8
 pytest>=7.0
