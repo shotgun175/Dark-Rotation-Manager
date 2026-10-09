@@ -2,7 +2,7 @@ keyboard==0.13.5
 pyyaml==6.0.1
 PyQt5>=5.15
 opencv-python>=4.8
-pywin32>=306
+pywin32>=312
 mss>=9.0
 pygame>=2.5
 edge-tts>=6.1
