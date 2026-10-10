@@ -41,5 +41,8 @@ jobs:
         run: pip install pip-audit
 
       - name: Audit constraints.txt
-        # --no-deps: every line is an exact pin, so nothing is resolved or installed.
-        run: pip-audit --no-deps -r constraints.txt
+        # --no-deps: every line is an exact pin, so nothing is resolved.
+        # --disable-pip: audit the pins as written instead of trial-installing them.
+        # Without it pip-audit dry-run installs the set, which fails on this Linux
+        # runner for Windows-only pins such as pywin32.
+        run: pip-audit --no-deps --disable-pip -r constraints.txt

@@ -37,7 +37,7 @@ jobs:
         run: |
           python -m venv "$env:RUNNER_TEMP\audit-venv"
           & "$env:RUNNER_TEMP\audit-venv\Scripts\python.exe" -m pip install --quiet pip-audit
-          & "$env:RUNNER_TEMP\audit-venv\Scripts\pip-audit.exe" --no-deps -r constraints.txt
+          & "$env:RUNNER_TEMP\audit-venv\Scripts\pip-audit.exe" --no-deps --disable-pip -r constraints.txt
 
       - name: Verify tag matches modules/version.py
         shell: pwsh
