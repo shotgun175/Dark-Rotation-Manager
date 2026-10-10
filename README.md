@@ -227,6 +227,14 @@ Always build from the `.spec` file (it bundles the example config, default
 roster, detection templates, icon, and chime into the exe); a raw
 `pyinstaller gui.py` build ships without them and breaks on first run.
 
+Release builds (`.github/workflows/release.yml`, run on a `v*` tag) install
+with `-c constraints.txt`, the exact package set that goes into the exe. The
+Audit pinned dependencies workflow (`.github/workflows/audit.yml`) checks that
+set with `pip-audit` weekly, on demand, and whenever `constraints.txt` or
+`requirements.txt` changes on main; each release build also logs the same
+audit without blocking. To fix a finding, bump that one pin in
+`constraints.txt` and note it in the file header.
+
 ---
 
 ## Multiple Rosters
@@ -243,6 +251,9 @@ MIT
 ---
 
 ## Changelog
+
+### v1.2.8 - Security update for the voice library
+- **Security:** release builds now ship multidict 6.9.1 (used by the text-to-speech voice), which includes a memory-leak fix. No change to how the app works
 
 ### v1.2.7 - Launch saves your edits, voice failure notice, keyboard links
 - **Fix:** Launch now saves what the settings window shows first, so a player you just added or a changed max throws is used without clicking Apply. A duplicate hotkey blocks Launch with the same message Apply shows
