@@ -28,6 +28,17 @@ jobs:
         # resolves the same versions (see constraints.txt header).
         run: pip install -r requirements.txt pyinstaller -c constraints.txt
 
+      - name: Audit pinned set (advisory)
+        # Logs any known vulnerability in constraints.txt but never blocks the
+        # release (see .github/workflows/audit.yml). pip-audit runs from its own
+        # venv so it adds nothing to the build environment.
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          python -m venv "$env:RUNNER_TEMP\audit-venv"
+          & "$env:RUNNER_TEMP\audit-venv\Scripts\python.exe" -m pip install --quiet pip-audit
+          & "$env:RUNNER_TEMP\audit-venv\Scripts\pip-audit.exe" --no-deps -r constraints.txt
+
       - name: Verify tag matches modules/version.py
         shell: pwsh
         run: |
