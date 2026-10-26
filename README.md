@@ -252,6 +252,9 @@ MIT
 
 ## Changelog
 
+### v1.2.9 - Security update for the voice library
+- **Security:** release builds now ship aiohttp 3.14.5 and certifi 2026.10.19 (used by the text-to-speech voice). They stop trusting a certificate authority whose keys were compromised, and fix cases where bad data from the voice server could use too much memory or CPU. No change to how the app works
+
 ### v1.2.8 - Security update for the voice library
 - **Security:** release builds now ship multidict 6.9.1 (used by the text-to-speech voice), which includes a memory-leak fix. No change to how the app works
 
