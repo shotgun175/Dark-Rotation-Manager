@@ -252,6 +252,10 @@ MIT
 
 ## Changelog
 
+### v1.2.9 - Voice cues work again, security update for the voice library
+- **Fix:** voice cues work again. Since about October 10, 2026, Microsoft's voice service has refused the voice library v1.2.8 uses, so every voice line failed to load and the overlay showed 'Voice cues failed to load - check internet (see logs)'. Release builds now ship edge-tts 7.3.1, which the service accepts. Running from source? Re-run `pip install -r requirements.txt` to pick it up
+- **Security:** release builds now ship certifi 2026.10.19 and aiohttp 3.14.5 (used by the text-to-speech voice). The certifi update stops trusting a certificate authority whose keys were compromised, and the aiohttp update fixes cases where bad data from the voice server could use too much memory or CPU. No change to how the app works
+
 ### v1.2.8 - Security update for the voice library
 - **Security:** release builds now ship multidict 6.9.1 (used by the text-to-speech voice), which includes a memory-leak fix. No change to how the app works
 
